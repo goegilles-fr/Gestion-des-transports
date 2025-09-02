@@ -1,4 +1,4 @@
-package fr.diginamic.demo_security.entites;
+package fr.diginamic.Gestion_des_transports.entites;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -13,7 +13,7 @@ public class Role {
     /** id */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private int id;
 
     /** ADMIN, USER, etc. */
     private String name; 
@@ -21,14 +21,14 @@ public class Role {
 	/** Getter
 	 * @return the id
 	 */
-	public Long getId() {
+	public int getId() {
 		return id;
 	}
 
 	/** Setter
 	 * @param id the id to set
 	 */
-	public void setId(Long id) {
+	public void setId(int id) {
 		this.id = id;
 	}
 

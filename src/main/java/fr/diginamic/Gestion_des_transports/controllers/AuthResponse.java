@@ -1,4 +1,4 @@
-package fr.diginamic.demo_security.controllers;
+package fr.diginamic.Gestion_des_transports.controllers;
 /**
  * Sert à retourner le token JWT dans le body de la réponse
  */

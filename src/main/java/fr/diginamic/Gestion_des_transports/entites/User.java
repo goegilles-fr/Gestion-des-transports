@@ -1,4 +1,4 @@
-package fr.diginamic.demo_security.entites;
+package fr.diginamic.Gestion_des_transports.entites;
 
 import java.util.Set;
 
@@ -19,7 +19,7 @@ public class User {
     /** id */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private int id;
 
     /** username : email par exemple */
     private String username;
@@ -38,14 +38,14 @@ public class User {
 	/** Getter
 	 * @return the id
 	 */
-	public Long getId() {
+	public int getId() {
 		return id;
 	}
 
 	/** Setter
 	 * @param id the id to set
 	 */
-	public void setId(Long id) {
+	public void setId(int id) {
 		this.id = id;
 	}
 

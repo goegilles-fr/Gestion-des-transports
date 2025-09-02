@@ -1,10 +1,10 @@
-package fr.diginamic.demo_security.repositories;
+package fr.diginamic.Gestion_des_transports.repositories;
 
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import fr.diginamic.demo_security.entites.User;
+import fr.diginamic.Gestion_des_transports.entites.User;
 
 /**
  * Accès base de données

@@ -1,4 +1,4 @@
-package fr.diginamic.demo_security;
+package fr.diginamic.Gestion_des_transports;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

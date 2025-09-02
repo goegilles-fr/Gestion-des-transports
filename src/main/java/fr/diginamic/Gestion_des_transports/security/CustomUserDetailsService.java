@@ -1,4 +1,4 @@
-package fr.diginamic.demo_security.security;
+package fr.diginamic.Gestion_des_transports.security;
 
 import java.util.stream.Collectors;
 
@@ -9,8 +9,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import fr.diginamic.demo_security.entites.User;
-import fr.diginamic.demo_security.repositories.UserRepository;
+import fr.diginamic.Gestion_des_transports.entites.User;
+import fr.diginamic.Gestion_des_transports.repositories.UserRepository;
 
 /**
  * Utilisée par AuthController pour authentifier l'utilisateur en 2 temps:

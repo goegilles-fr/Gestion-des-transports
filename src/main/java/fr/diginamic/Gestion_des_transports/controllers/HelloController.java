@@ -1,4 +1,4 @@
-package fr.diginamic.demo_security.controllers;
+package fr.diginamic.Gestion_des_transports.controllers;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;

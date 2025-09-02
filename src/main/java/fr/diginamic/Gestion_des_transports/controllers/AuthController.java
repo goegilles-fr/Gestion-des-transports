@@ -1,4 +1,4 @@
-package fr.diginamic.demo_security.controllers;
+package fr.diginamic.Gestion_des_transports.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import fr.diginamic.demo_security.security.CustomUserDetailsService;
-import fr.diginamic.demo_security.security.JwtUtil;
+import fr.diginamic.Gestion_des_transports.security.CustomUserDetailsService;
+import fr.diginamic.Gestion_des_transports.security.JwtUtil;
 
 /**
  * Contrôleur en charge de l'authentification
