@@ -1,0 +1,124 @@
+name: Discord Push Notification
+
+on:
+  push:
+    branches: ['*']  # Triggers on push to any branch
+
+jobs:
+  notify-discord:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # Fetch current and previous commit to compare changes
+      
+      - name: Get changed files
+        id: changes
+        run: |
+          # Get the list of changed, added, and deleted files
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD | head -20)
+          ADDED_FILES=$(git diff --name-status HEAD~1 HEAD | grep "^A" | cut -f2 | head -10)
+          DELETED_FILES=$(git diff --name-status HEAD~1 HEAD | grep "^D" | cut -f2 | head -10)
+          MODIFIED_FILES=$(git diff --name-status HEAD~1 HEAD | grep "^M" | cut -f2 | head -10)
+          
+          # Format files for Discord (escape special characters and limit length)
+          format_files() {
+            local files="$1"
+            local max_files=10
+            local count=0
+            local result=""
+            
+            if [ -z "$files" ]; then
+              echo "None"
+              return
+            fi
+            
+            while IFS= read -r file && [ $count -lt $max_files ]; do
+              if [ -n "$file" ]; then
+                result="${result}\`${file}\`\n"
+                count=$((count + 1))
+              fi
+            done <<< "$files"
+            
+            if [ $(echo "$files" | wc -l) -gt $max_files ]; then
+              result="${result}...and $(($(echo "$files" | wc -l) - max_files)) more"
+            fi
+            
+            echo -e "$result"
+          }
+          
+          FORMATTED_ADDED=$(format_files "$ADDED_FILES")
+          FORMATTED_DELETED=$(format_files "$DELETED_FILES")
+          FORMATTED_MODIFIED=$(format_files "$MODIFIED_FILES")
+          
+          # Save to environment file
+          echo "ADDED_FILES<<EOF" >> $GITHUB_ENV
+          echo "$FORMATTED_ADDED" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+          
+          echo "DELETED_FILES<<EOF" >> $GITHUB_ENV
+          echo "$FORMATTED_DELETED" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+          
+          echo "MODIFIED_FILES<<EOF" >> $GITHUB_ENV
+          echo "$FORMATTED_MODIFIED" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Send Discord notification
+        run: |
+          # Get commit info
+          COMMIT_MESSAGE=$(git log -1 --pretty=format:"%s")
+          COMMIT_AUTHOR=$(git log -1 --pretty=format:"%an")
+          COMMIT_SHA_SHORT=$(git log -1 --pretty=format:"%h")
+          REPO_NAME="${GITHUB_REPOSITORY##*/}"
+          BRANCH_NAME="${GITHUB_REF##*/}"
+          
+          # Create the Discord embed payload
+          curl -X POST "${{ secrets.DISCORD_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "embeds": [{
+                "title": "🚀 New Push to Repository",
+                "description": "**'"$COMMIT_AUTHOR"'** just made a push!",
+                "color": 5814783,
+                "fields": [
+                  {
+                    "name": "📁 Repository",
+                    "value": "'"$REPO_NAME"'",
+                    "inline": true
+                  },
+                  {
+                    "name": "🌿 Branch", 
+                    "value": "'"$BRANCH_NAME"'",
+                    "inline": true
+                  },
+                  {
+                    "name": "💬 Commit",
+                    "value": "[`'"$COMMIT_SHA_SHORT"'`](https://github.com/'"$GITHUB_REPOSITORY"'/commit/'"$GITHUB_SHA"') '"$COMMIT_MESSAGE"'",
+                    "inline": false
+                  },
+                  {
+                    "name": "✅ Files Added",
+                    "value": "'"$ADDED_FILES"'",
+                    "inline": true
+                  },
+                  {
+                    "name": "📝 Files Modified", 
+                    "value": "'"$MODIFIED_FILES"'",
+                    "inline": true
+                  },
+                  {
+                    "name": "❌ Files Deleted",
+                    "value": "'"$DELETED_FILES"'", 
+                    "inline": true
+                  }
+                ],
+                "timestamp": "'"$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"'",
+                "footer": {
+                  "text": "GitHub Actions",
+                  "icon_url": "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+                }
+              }]
+            }'
