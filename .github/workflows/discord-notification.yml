@@ -18,12 +18,11 @@ jobs:
         id: changes
         run: |
           # Get the list of changed, added, and deleted files
-          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD | head -20)
           ADDED_FILES=$(git diff --name-status HEAD~1 HEAD | grep "^A" | cut -f2 | head -10)
           DELETED_FILES=$(git diff --name-status HEAD~1 HEAD | grep "^D" | cut -f2 | head -10)
           MODIFIED_FILES=$(git diff --name-status HEAD~1 HEAD | grep "^M" | cut -f2 | head -10)
           
-          # Format files for Discord (escape special characters and limit length)
+          # Format files for Discord (create clean list with proper newlines)
           format_files() {
             local files="$1"
             local max_files=10
@@ -37,13 +36,19 @@ jobs:
             
             while IFS= read -r file && [ $count -lt $max_files ]; do
               if [ -n "$file" ]; then
-                result="${result}\`${file}\`\n"
+                # Add each file on a new line with backticks
+                if [ $count -eq 0 ]; then
+                  result="\`${file}\`"
+                else
+                  result="${result}\n\`${file}\`"
+                fi
                 count=$((count + 1))
               fi
             done <<< "$files"
             
-            if [ $(echo "$files" | wc -l) -gt $max_files ]; then
-              result="${result}...and $(($(echo "$files" | wc -l) - max_files)) more"
+            local total_files=$(echo "$files" | wc -l)
+            if [ "$total_files" -gt $max_files ]; then
+              result="${result}\n...and $(($total_files - $max_files)) more"
             fi
             
             echo -e "$result"
@@ -68,57 +73,81 @@ jobs:
 
       - name: Send Discord notification
         run: |
-          # Get commit info
+          # Get commit info (no pre-escaping needed - jq handles it)
           COMMIT_MESSAGE=$(git log -1 --pretty=format:"%s")
           COMMIT_AUTHOR=$(git log -1 --pretty=format:"%an")
           COMMIT_SHA_SHORT=$(git log -1 --pretty=format:"%h")
           REPO_NAME="${GITHUB_REPOSITORY##*/}"
           BRANCH_NAME="${GITHUB_REF##*/}"
           
-          # Create the Discord embed payload
-          curl -X POST "${{ secrets.DISCORD_WEBHOOK_URL }}" \
-            -H "Content-Type: application/json" \
-            -d '{
+          # Create commit link
+          COMMIT_LINK="[\`${COMMIT_SHA_SHORT}\`](https://github.com/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}) ${COMMIT_MESSAGE}"
+          
+          # Create the Discord embed payload using jq for proper JSON formatting
+          PAYLOAD=$(jq -n \
+            --arg title "🚀 New Push to Repository" \
+            --arg description "**${COMMIT_AUTHOR}** just made a push!" \
+            --arg repo "$REPO_NAME" \
+            --arg branch "$BRANCH_NAME" \
+            --arg commit_link "$COMMIT_LINK" \
+            --arg added "$ADDED_FILES" \
+            --arg modified "$MODIFIED_FILES" \
+            --arg deleted "$DELETED_FILES" \
+            --arg timestamp "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)" \
+            '{
               "embeds": [{
-                "title": "🚀 New Push to Repository",
-                "description": "**'"$COMMIT_AUTHOR"'** just made a push!",
+                "title": $title,
+                "description": $description,
                 "color": 5814783,
                 "fields": [
                   {
                     "name": "📁 Repository",
-                    "value": "'"$REPO_NAME"'",
-                    "inline": true
+                    "value": $repo,
+                    "inline": false
                   },
                   {
                     "name": "🌿 Branch", 
-                    "value": "'"$BRANCH_NAME"'",
-                    "inline": true
+                    "value": $branch,
+                    "inline": false
                   },
                   {
                     "name": "💬 Commit",
-                    "value": "[`'"$COMMIT_SHA_SHORT"'`](https://github.com/'"$GITHUB_REPOSITORY"'/commit/'"$GITHUB_SHA"') '"$COMMIT_MESSAGE"'",
+                    "value": $commit_link,
                     "inline": false
                   },
                   {
                     "name": "✅ Files Added",
-                    "value": "'"$ADDED_FILES"'",
-                    "inline": true
+                    "value": $added,
+                    "inline": false
                   },
                   {
                     "name": "📝 Files Modified", 
-                    "value": "'"$MODIFIED_FILES"'",
-                    "inline": true
+                    "value": $modified,
+                    "inline": false
                   },
                   {
                     "name": "❌ Files Deleted",
-                    "value": "'"$DELETED_FILES"'", 
-                    "inline": true
+                    "value": $deleted, 
+                    "inline": false
                   }
                 ],
-                "timestamp": "'"$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"'",
+                "timestamp": $timestamp,
                 "footer": {
                   "text": "GitHub Actions",
                   "icon_url": "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
                 }
               }]
-            }'
+            }')
+          
+          # Debug: Print the JSON payload
+          echo "=== DEBUG: Generated JSON payload ==="
+          echo "$PAYLOAD"
+          echo "=== END DEBUG ==="
+          
+          # Optional: Validate JSON
+          echo "$PAYLOAD" | jq empty && echo "✅ JSON is valid" || echo "❌ JSON is invalid"
+          
+          # Send to Discord
+          curl -X POST "${{ secrets.DISCORD_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD"
