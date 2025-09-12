@@ -85,7 +85,7 @@ jobs:
           
           # Create the Discord embed payload using jq for proper JSON formatting
           PAYLOAD=$(jq -n \
-            --arg title "🚀 New Push by ${COMMIT_AUTHOR}" in branch 🌿 ${BRANCH_NAME}  \
+            --arg title "🚀 New Push by ${COMMIT_AUTHOR} in branch 🌿 ${BRANCH_NAME}" \
             --arg description "**${COMMIT_AUTHOR}** just made a push!" \
             --arg repo "$REPO_NAME" \
             --arg branch "$BRANCH_NAME" \
