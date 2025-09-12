@@ -13,6 +13,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+// MADE BY RICHARD !!!!!!!!
+// MADE BY RICHARD !!!!!!!!
+// MADE BY RICHARD !!!!!!!!
+// MADE BY RICHARD !!!!!!!!
 
 /**
  * Configure la sécurité

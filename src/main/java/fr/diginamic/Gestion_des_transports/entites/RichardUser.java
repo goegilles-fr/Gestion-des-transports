@@ -10,12 +10,16 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+// MADE BY RICHARD !!!!!!!!
+// MADE BY RICHARD !!!!!!!!
+// MADE BY RICHARD !!!!!!!!
+// MADE BY RICHARD !!!!!!!!
 
 /**
  * Représente un utilisateur
  */
 @Entity
-public class User {
+public class RichardUser {
     /** id */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,10 +34,10 @@ public class User {
 
     /** Liste des rôles */
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "user_roles",
+    @JoinTable(name = "richard_user_roles",
         joinColumns = @JoinColumn(name = "user_id"),
         inverseJoinColumns = @JoinColumn(name = "role_id"))
-    private Set<Role> roles;
+    private Set<RichardRole> roles;
 
 	/** Getter
 	 * @return the id
@@ -94,14 +98,14 @@ public class User {
 	/** Getter
 	 * @return the roles
 	 */
-	public Set<Role> getRoles() {
+	public Set<RichardRole> getRoles() {
 		return roles;
 	}
 
 	/** Setter
 	 * @param roles the roles to set
 	 */
-	public void setRoles(Set<Role> roles) {
+	public void setRoles(Set<RichardRole> roles) {
 		this.roles = roles;
 	}
 }

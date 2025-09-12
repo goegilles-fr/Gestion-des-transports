@@ -4,12 +4,16 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+// MADE BY RICHARD !!!!!!!!
+// MADE BY RICHARD !!!!!!!!
+// MADE BY RICHARD !!!!!!!!
+// MADE BY RICHARD !!!!!!!!
 
 /**
  * Représente un rôle de l'utilisateur
  */
 @Entity
-public class Role {
+public class RichardRole {
     /** id */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

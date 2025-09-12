@@ -1,5 +1,6 @@
 package fr.diginamic.Gestion_des_transports.entites;
 
+import fr.diginamic.Gestion_des_transports.enums.Categorie;
 import fr.diginamic.Gestion_des_transports.enums.Motorisation;
 import jakarta.persistence.*;
 
@@ -17,9 +18,9 @@ public class VehiculePersonnel extends Vehicule {
         super();
     }
 
-    // Constructor with parameters
-    public VehiculePersonnel(String immatriculation, Integer nbPlaces, String modele, String marque, Motorisation motorisation) {
-        super(immatriculation, nbPlaces, modele, marque, motorisation);
+    public VehiculePersonnel(int id, String immatriculation, Integer nbPlaces, String modele, Double co2ParKm, String photo, String marque, Motorisation motorisation, Categorie categorie, Utilisateur utilisateur) {
+        super(id, immatriculation, nbPlaces, modele, co2ParKm, photo, marque, motorisation, categorie);
+        this.utilisateur = utilisateur;
     }
 
     public Utilisateur getUtilisateur() {

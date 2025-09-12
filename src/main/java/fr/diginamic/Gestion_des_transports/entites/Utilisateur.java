@@ -21,6 +21,9 @@ public class Utilisateur {
     @Column(name = "email", unique = true)
     private String email;
 
+    @Column(name = "password")
+    private String password;
+
     @ManyToOne
     @JoinColumn(name = "adresse_id")
     private Adresse adresse;
@@ -35,6 +38,10 @@ public class Utilisateur {
     @Column(name = "est_verifie")
     private Boolean estVerifie = false;
 
+    @Column(name = "est_supprime")
+    private Boolean estsupprime = false;
+
+
     @OneToMany(mappedBy = "utilisateur", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<VehiculePersonnel> vehiculesPersonnels;
 
@@ -43,8 +50,7 @@ public class Utilisateur {
     @OneToMany(mappedBy = "responsable", fetch = FetchType.LAZY)
     private Set<AnnonceCovoiturage> annoncesResponsables;
 
-    @ManyToMany(mappedBy = "utilisateurs")
-    private Set<AnnonceCovoiturage> annoncesParticipees;
+
 
     // Default constructor
     public Utilisateur() {}
@@ -144,11 +150,4 @@ public class Utilisateur {
         this.annoncesResponsables = annoncesResponsables;
     }
 
-    public Set<AnnonceCovoiturage> getAnnoncesParticipees() {
-        return annoncesParticipees;
-    }
-
-    public void setAnnoncesParticipees(Set<AnnonceCovoiturage> annoncesParticipees) {
-        this.annoncesParticipees = annoncesParticipees;
-    }
 }

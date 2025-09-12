@@ -9,8 +9,12 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import fr.diginamic.Gestion_des_transports.entites.User;
+import fr.diginamic.Gestion_des_transports.entites.RichardUser;
 import fr.diginamic.Gestion_des_transports.repositories.UserRepository;
+// MADE BY RICHARD !!!!!!!!
+// MADE BY RICHARD !!!!!!!!
+// MADE BY RICHARD !!!!!!!!
+// MADE BY RICHARD !!!!!!!!
 
 /**
  * Utilisée par AuthController pour authentifier l'utilisateur en 2 temps:
@@ -26,7 +30,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
+        RichardUser user = userRepository.findByUsername(username)
             .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
         return new org.springframework.security.core.userdetails.User(

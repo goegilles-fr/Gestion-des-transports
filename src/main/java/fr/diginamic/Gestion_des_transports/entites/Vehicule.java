@@ -1,5 +1,6 @@
 package fr.diginamic.Gestion_des_transports.entites;
 
+import fr.diginamic.Gestion_des_transports.enums.Categorie;
 import fr.diginamic.Gestion_des_transports.enums.Motorisation;
 import jakarta.persistence.*;
 
@@ -33,16 +34,26 @@ public abstract class Vehicule {
     @Column(name = "motorisation")
     private Motorisation motorisation;
 
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "categorie")
+    private Categorie categorie;
+
+
+
     // Default constructor
     public Vehicule() {}
 
-    // Constructor with parameters
-    public Vehicule(String immatriculation, Integer nbPlaces, String modele, String marque, Motorisation motorisation) {
+    public Vehicule(int id, String immatriculation, Integer nbPlaces, String modele, Double co2ParKm, String photo, String marque, Motorisation motorisation, Categorie categorie) {
+        this.id = id;
         this.immatriculation = immatriculation;
         this.nbPlaces = nbPlaces;
         this.modele = modele;
+        this.co2ParKm = co2ParKm;
+        this.photo = photo;
         this.marque = marque;
         this.motorisation = motorisation;
+        this.categorie = categorie;
     }
 
     // Getters and Setters

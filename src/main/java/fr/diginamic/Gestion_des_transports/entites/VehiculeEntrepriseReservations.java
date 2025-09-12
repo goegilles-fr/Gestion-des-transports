@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "utilisateur_vehicule_service")
-public class UtilisateurVehiculeService {
+@Table(name = "vehicule-entreprise-reservations")
+public class VehiculeEntrepriseReservations {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -16,8 +16,8 @@ public class UtilisateurVehiculeService {
     private Utilisateur utilisateur;
 
     @ManyToOne
-    @JoinColumn(name = "vehicule_service_id")
-    private VehiculeService vehiculeService;
+    @JoinColumn(name = "vehicule_entreprise_id")
+    private VehiculeEntreprise vehiculeService;
 
     @Column(name = "date_debut")
     private LocalDateTime dateDebut;
@@ -26,11 +26,11 @@ public class UtilisateurVehiculeService {
     private LocalDateTime dateFin;
 
     // Default constructor
-    public UtilisateurVehiculeService() {}
+    public VehiculeEntrepriseReservations() {}
 
     // Constructor with parameters
-    public UtilisateurVehiculeService(Utilisateur utilisateur, VehiculeService vehiculeService,
-                                      LocalDateTime dateDebut, LocalDateTime dateFin) {
+    public VehiculeEntrepriseReservations(Utilisateur utilisateur, VehiculeEntreprise vehiculeService,
+                                          LocalDateTime dateDebut, LocalDateTime dateFin) {
         this.utilisateur = utilisateur;
         this.vehiculeService = vehiculeService;
         this.dateDebut = dateDebut;
@@ -54,11 +54,11 @@ public class UtilisateurVehiculeService {
         this.utilisateur = utilisateur;
     }
 
-    public VehiculeService getVehiculeService() {
+    public VehiculeEntreprise getVehiculeService() {
         return vehiculeService;
     }
 
-    public void setVehiculeService(VehiculeService vehiculeService) {
+    public void setVehiculeService(VehiculeEntreprise vehiculeService) {
         this.vehiculeService = vehiculeService;
     }
 

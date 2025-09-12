@@ -15,6 +15,14 @@ import org.springframework.web.bind.annotation.RestController;
 import fr.diginamic.Gestion_des_transports.security.CustomUserDetailsService;
 import fr.diginamic.Gestion_des_transports.security.JwtUtil;
 
+
+// MADE BY RICHARD !!!!!!!!
+// MADE BY RICHARD !!!!!!!!
+// MADE BY RICHARD !!!!!!!!
+// MADE BY RICHARD !!!!!!!!
+
+
+
 /**
  * Contrôleur en charge de l'authentification
  */

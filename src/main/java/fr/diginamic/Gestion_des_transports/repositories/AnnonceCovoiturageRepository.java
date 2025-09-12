@@ -30,7 +30,8 @@ public interface AnnonceCovoiturageRepository extends JpaRepository<AnnonceCovoi
     @Query("SELECT a FROM AnnonceCovoiturage a WHERE a.heureDepart > :now ORDER BY a.heureDepart ASC")
     List<AnnonceCovoiturage> findFutureAnnonces(@Param("now") LocalDateTime now);
 
-    @Query("SELECT a FROM AnnonceCovoiturage a WHERE :utilisateur MEMBER OF a.utilisateurs")
+    // Requête corrigée pour utiliser la nouvelle relation avec CovoituragePassagers
+    @Query("SELECT DISTINCT cp.annonceCovoiturage FROM CovoituragePassagers cp WHERE cp.utilisateur = :utilisateur")
     List<AnnonceCovoiturage> findByUtilisateurParticipant(@Param("utilisateur") Utilisateur utilisateur);
 
     @Query("SELECT a FROM AnnonceCovoiturage a WHERE a.responsable.id = :responsableId")

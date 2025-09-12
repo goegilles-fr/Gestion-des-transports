@@ -35,20 +35,16 @@ public class AnnonceCovoiturage {
 
     @ManyToOne
     @JoinColumn(name = "vehicule_service_id")
-    private VehiculeService vehiculeService;
+    private VehiculeEntreprise vehiculeService;
 
-    @ManyToMany
-    @JoinTable(
-            name = "utilisateur_vehicule_service",
-            joinColumns = @JoinColumn(name = "vehicule_service_id"),
-            inverseJoinColumns = @JoinColumn(name = "utilisateur_id")
-    )
-    private Set<Utilisateur> utilisateurs;
+    // Relation avec les passagers via la table de jointure CovoituragePassagers
+    @OneToMany(mappedBy = "annonceCovoiturage", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<CovoituragePassagers> passagers;
 
-    // Default constructor
+    // Constructeur par défaut
     public AnnonceCovoiturage() {}
 
-    // Constructor with parameters
+    // Constructeur avec paramètres
     public AnnonceCovoiturage(LocalDateTime heureDepart, Integer dureeTrajet, Integer distance,
                               Adresse adresseDepart, Adresse adresseArrivee, Utilisateur responsable) {
         this.heureDepart = heureDepart;
@@ -59,7 +55,7 @@ public class AnnonceCovoiturage {
         this.responsable = responsable;
     }
 
-    // Getters and Setters
+    // Getters et Setters
     public int getId() {
         return id;
     }
@@ -116,19 +112,19 @@ public class AnnonceCovoiturage {
         this.responsable = responsable;
     }
 
-    public VehiculeService getVehiculeService() {
+    public VehiculeEntreprise getVehiculeService() {
         return vehiculeService;
     }
 
-    public void setVehiculeService(VehiculeService vehiculeService) {
+    public void setVehiculeService(VehiculeEntreprise vehiculeService) {
         this.vehiculeService = vehiculeService;
     }
 
-    public Set<Utilisateur> getUtilisateurs() {
-        return utilisateurs;
+    public Set<CovoituragePassagers> getPassagers() {
+        return passagers;
     }
 
-    public void setUtilisateurs(Set<Utilisateur> utilisateurs) {
-        this.utilisateurs = utilisateurs;
+    public void setPassagers(Set<CovoituragePassagers> passagers) {
+        this.passagers = passagers;
     }
 }
