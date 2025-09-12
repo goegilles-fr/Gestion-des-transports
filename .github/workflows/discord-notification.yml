@@ -100,9 +100,9 @@ jobs:
                 "color": 5814783,
                 "fields": [
                   {
-                  "name": "",
-                  "value": "📁 $repo | 🌿 $branch | 💬 $commit_link",
-                  "inline": false
+                    "name": "",
+                    "value": "📁 " + $repo + " | 🌿 " + $branch + " | 💬 " + $commit_link,
+                     "inline": false
                   },
                   {
                     "name": "✅ Files Added",
