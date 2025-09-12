@@ -17,13 +17,12 @@ public interface VehiculeMapper {
 
     // Vehicule d'entreprise vers DTO
     @Mapping(target = "type", constant = "ENTREPRISE")
-    @Mapping(target = "statut", expression = "java(parseStatut(v.getStatut()))")
+    @Mapping(target = "statut", source = "statut")
     @Mapping(target = "motorisation", source = "motorisation")
     @Mapping(target = "co2ParKm", source = "co2ParKm")
-    @Mapping(target = "photoUrl", source = "photoUrl")
+    @Mapping(target = "photo", source = "photo")
     @Mapping(target = "categorie", source = "categorie")
     @Mapping(target = "utilisateurId", ignore = true)
-    @Mapping(target = "reservations", source = "reservations")
     VehiculeDTO toDto(VehiculeEntreprise v);
 
     List<VehiculeDTO> toDtoEntrepriseList(List<VehiculeEntreprise> list);
@@ -33,10 +32,9 @@ public interface VehiculeMapper {
     @Mapping(target = "statut", ignore = true)
     @Mapping(target = "motorisation", ignore = true)
     @Mapping(target = "co2ParKm", ignore = true)
-    @Mapping(target = "photoUrl", ignore = true)
+    @Mapping(target = "photo", ignore = true)
     @Mapping(target = "categorie", ignore = true)
     @Mapping(target = "utilisateurId", source = "utilisateur.id")
-    @Mapping(target = "reservations", ignore = true)
     VehiculeDTO toDto(VehiculePersonnel v);
 
     List<VehiculeDTO> toDtoPersonnelList(List<VehiculePersonnel> list);
@@ -48,20 +46,19 @@ public interface VehiculeMapper {
     @Mapping(target = "immatriculation", source = "immatriculation")
     @Mapping(target = "marque", source = "marque")
     @Mapping(target = "modele", source = "modele")
-    @Mapping(target = "nombrePlaces", source = "nombrePlaces")
-    @Mapping(target = "statut", expression = "java(statutToString(dto.statut()))")
+    @Mapping(target = "nbPlaces", source = "nbPlaces")
+    @Mapping(target = "statut", source = "statut")
     @Mapping(target = "motorisation", source = "motorisation")
     @Mapping(target = "co2ParKm", source = "co2ParKm")
-    @Mapping(target = "photoUrl", source = "photoUrl")
+    @Mapping(target = "photo", source = "photo")
     @Mapping(target = "categorie", source = "categorie")
-    @Mapping(target = "reservations", ignore = true)
     VehiculeEntreprise toEntrepriseEntity(VehiculeDTO dto);
 
     @Mapping(target = "id", source = "id")
     @Mapping(target = "immatriculation", source = "immatriculation")
     @Mapping(target = "marque", source = "marque")
     @Mapping(target = "modele", source = "modele")
-    @Mapping(target = "nombrePlaces", source = "nombrePlaces")
+    @Mapping(target = "nbPlaces", source = "nbPlaces")
     @Mapping(target = "utilisateur", ignore = true) // à lier dans le service via repo
     VehiculePersonnel toPersonnelEntity(VehiculeDTO dto);
 
