@@ -120,4 +120,12 @@ public abstract class Vehicule {
     public void setMotorisation(Motorisation motorisation) {
         this.motorisation = motorisation;
     }
+
+    public Categorie getCategorie() {
+        return categorie;
+    }
+
+    public void setCategorie(Categorie categorie) {
+        this.categorie = categorie;
+    }
 }
