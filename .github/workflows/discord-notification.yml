@@ -102,7 +102,7 @@ jobs:
                 "fields": [
                   {
                     "name": "",
-                    "value": "📁 \($repo) | 🌿 \($branch) | 💬 \($commit_message)"
+                    "value": "📁 \($repo) | 🌿 \($branch) | 💬 \($commit_message)",
                     "inline": false
                   },
                   {
