@@ -150,4 +150,21 @@ public class Utilisateur {
         this.annoncesResponsables = annoncesResponsables;
     }
 
+    public void setEstsupprime(Boolean estsupprime) {
+        this.estsupprime = estsupprime;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public Boolean getEstsupprime() {
+        return estsupprime;
+    }
+
+
 }
