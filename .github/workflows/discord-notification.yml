@@ -90,6 +90,7 @@ jobs:
             --arg repo "$REPO_NAME" \
             --arg branch "$BRANCH_NAME" \
             --arg commit_link "$COMMIT_LINK" \
+            --arg commit_message "$COMMIT_MESSAGE" \
             --arg added "$ADDED_FILES" \
             --arg modified "$MODIFIED_FILES" \
             --arg deleted "$DELETED_FILES" \
@@ -101,8 +102,8 @@ jobs:
                 "fields": [
                   {
                     "name": "",
-                    "value": "📁 " + $repo + " | 🌿 " + $branch + " | 💬 " + $commit_link,
-                     "inline": false
+                    "value": "📁 \($repo) | 🌿 \($branch) | 💬 \($commit_message)"
+                    "inline": false
                   },
                   {
                     "name": "✅ Files Added",
