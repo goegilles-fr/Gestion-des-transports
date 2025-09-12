@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "vehicule-entreprise-reservations")
-public class VehiculeEntrepriseReservations {
+public class ReservationVehicule {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,7 +17,7 @@ public class VehiculeEntrepriseReservations {
 
     @ManyToOne
     @JoinColumn(name = "vehicule_entreprise_id")
-    private VehiculeEntreprise vehiculeService;
+    private VehiculeEntreprise vehiculeEntreprise;
 
     @Column(name = "date_debut")
     private LocalDateTime dateDebut;
@@ -26,13 +26,13 @@ public class VehiculeEntrepriseReservations {
     private LocalDateTime dateFin;
 
     // Default constructor
-    public VehiculeEntrepriseReservations() {}
+    public ReservationVehicule() {}
 
     // Constructor with parameters
-    public VehiculeEntrepriseReservations(Utilisateur utilisateur, VehiculeEntreprise vehiculeService,
-                                          LocalDateTime dateDebut, LocalDateTime dateFin) {
+    public ReservationVehicule(Utilisateur utilisateur, VehiculeEntreprise vehiculeEntreprise,
+                               LocalDateTime dateDebut, LocalDateTime dateFin) {
         this.utilisateur = utilisateur;
-        this.vehiculeService = vehiculeService;
+        this.vehiculeEntreprise = vehiculeEntreprise;
         this.dateDebut = dateDebut;
         this.dateFin = dateFin;
     }
@@ -54,12 +54,12 @@ public class VehiculeEntrepriseReservations {
         this.utilisateur = utilisateur;
     }
 
-    public VehiculeEntreprise getVehiculeService() {
-        return vehiculeService;
+    public VehiculeEntreprise getVehiculeEntreprise() {
+        return vehiculeEntreprise;
     }
 
-    public void setVehiculeService(VehiculeEntreprise vehiculeService) {
-        this.vehiculeService = vehiculeService;
+    public void setVehiculeEntreprise(VehiculeEntreprise vehiculeService) {
+        this.vehiculeEntreprise = vehiculeService;
     }
 
     public LocalDateTime getDateDebut() {
