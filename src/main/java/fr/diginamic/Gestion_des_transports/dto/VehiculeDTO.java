@@ -32,11 +32,11 @@ public record VehiculeDTO(
         String modele,
 
         @Positive
-        Integer nombrePlaces,
+        Integer nbPlaces,
 
         Motorisation motorisation,
         double co2ParKm,
-        String photoUrl,
+        String photo,
         Categorie categorie,// chauffeur inclus
 
         // --- Spécifique ENTREPRISE (optionnel) ---
@@ -51,11 +51,11 @@ public record VehiculeDTO(
             String immatriculation,
             String marque,
             String modele,
-            Integer nombrePlaces,
+            Integer nbPlaces,
             StatutVehicule statut,
             Motorisation motorisation,
             double co2ParKm,
-            String photoUrl,
+            String photo,
             Categorie categorie
     ) {
         return new VehiculeDTO(
@@ -64,10 +64,10 @@ public record VehiculeDTO(
                 immatriculation,
                 marque,
                 modele,
-                nombrePlaces,
+                nbPlaces,
                 motorisation,
                 co2ParKm,
-                photoUrl,
+                photo,
                 categorie,
                 statut,
                 null // utilisateurId
@@ -80,10 +80,10 @@ public record VehiculeDTO(
             String immatriculation,
             String marque,
             String modele,
-            Integer nombrePlaces,
+            Integer nbPlaces,
             Motorisation motorisation,
             double co2ParKm,
-            String photoUrl,
+            String photo,
             Categorie categorie,
             Long utilisateurId
     ) {
@@ -93,10 +93,10 @@ public record VehiculeDTO(
                 immatriculation,
                 marque,
                 modele,
-                nombrePlaces,
+                nbPlaces,
                 motorisation,
                 co2ParKm,
-                photoUrl,
+                photo,
                 categorie,
                 null,   // statut
                 utilisateurId

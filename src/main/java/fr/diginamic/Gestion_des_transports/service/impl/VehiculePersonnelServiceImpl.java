@@ -60,7 +60,7 @@ public class VehiculePersonnelServiceImpl implements VehiculePersonnelService {
         entity.setImmatriculation(dto.immatriculation());
         entity.setMarque(dto.marque());
         entity.setModele(dto.modele());
-        entity.setNbPlaces(dto.nombrePlaces());
+        entity.setNbPlaces(dto.nbPlaces());
 
         if (dto.utilisateurId() != null) {
             entity.setUtilisateur(utilisateurRepo.getReferenceById(dto.utilisateurId()));

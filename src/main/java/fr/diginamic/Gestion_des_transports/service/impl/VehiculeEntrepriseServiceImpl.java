@@ -52,11 +52,11 @@ public class VehiculeEntrepriseServiceImpl implements VehiculeEntrepriseService 
         entity.setImmatriculation(dto.immatriculation());
         entity.setMarque(dto.marque());
         entity.setModele(dto.modele());
-        entity.setNbPlaces(dto.nombrePlaces());
+        entity.setNbPlaces(dto.nbPlaces());
         entity.setStatut(dto.statut());
         entity.setMotorisation(dto.motorisation());
         entity.setCo2ParKm(dto.co2ParKm());
-        entity.setPhoto(dto.photoUrl());
+        entity.setPhoto(dto.photo());
         entity.setCategorie(dto.categorie());
         // Les réservations sont gérées via un service dédié, pas ici.
 
