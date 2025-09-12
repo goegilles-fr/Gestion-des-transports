@@ -17,10 +17,6 @@ public class UtilisateurController {
     @Autowired
     private UtilisateurService utilisateurService;
 
-    // MADE BY RICHARD !!!!!!!!
-    // MADE BY RICHARD !!!!!!!!
-    // MADE BY RICHARD !!!!!!!!
-    // MADE BY RICHARD !!!!!!!!
 
     /**
      * Endpoint for getting all users.

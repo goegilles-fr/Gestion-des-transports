@@ -39,7 +39,11 @@ public class SecurityConfig {
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 	    http.csrf(AbstractHttpConfigurer::disable) // Désactiver CSRF
 	        .authorizeHttpRequests(authorize -> authorize
-	            .requestMatchers("/api/auth/**").permitAll() // Autoriser /api/auth sans authentification
+	            .requestMatchers("/api/auth/**",
+                        "/swagger-ui/**",
+                        "/swagger-ui.html",
+                        "/v3/api-docs/**",
+                        "/v3/api-docs.yaml").permitAll()
 	            .anyRequest().authenticated() // Tous les autres endpoints sont authentifiés
 	        );
 	    http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

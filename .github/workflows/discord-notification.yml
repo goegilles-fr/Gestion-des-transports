@@ -18,9 +18,9 @@ jobs:
         id: changes
         run: |
           # Get the list of changed, added, and deleted files
-          ADDED_FILES=$(git diff --name-status HEAD~1 HEAD | grep "^A" | cut -f2 | head -10)
-          DELETED_FILES=$(git diff --name-status HEAD~1 HEAD | grep "^D" | cut -f2 | head -10)
-          MODIFIED_FILES=$(git diff --name-status HEAD~1 HEAD | grep "^M" | cut -f2 | head -10)
+          ADDED_FILES=$(git diff --name-status HEAD~1 HEAD | grep "^A" | cut -f2 | xargs -n1 basename | head -10)
+          DELETED_FILES=$(git diff --name-status HEAD~1 HEAD | grep "^D" | cut -f2 | xargs -n1 basename | head -10)
+          MODIFIED_FILES=$(git diff --name-status HEAD~1 HEAD | grep "^M" | cut -f2 | xargs -n1 basename | head -10)
           
           # Format files for Discord (create clean list with proper newlines)
           format_files() {
@@ -85,7 +85,7 @@ jobs:
           
           # Create the Discord embed payload using jq for proper JSON formatting
           PAYLOAD=$(jq -n \
-            --arg title "🚀 New Push to Repository" \
+            --arg title "🚀 New Push by ${COMMIT_AUTHOR}" \
             --arg description "**${COMMIT_AUTHOR}** just made a push!" \
             --arg repo "$REPO_NAME" \
             --arg branch "$BRANCH_NAME" \
@@ -97,23 +97,12 @@ jobs:
             '{
               "embeds": [{
                 "title": $title,
-                "description": $description,
                 "color": 5814783,
                 "fields": [
                   {
-                    "name": "📁 Repository",
-                    "value": $repo,
-                    "inline": false
-                  },
-                  {
-                    "name": "🌿 Branch", 
-                    "value": $branch,
-                    "inline": false
-                  },
-                  {
-                    "name": "💬 Commit",
-                    "value": $commit_link,
-                    "inline": false
+                  "name": "",
+                  "value": "📁 $repo | 🌿 $branch | 💬 $commit_link",
+                  "inline": false
                   },
                   {
                     "name": "✅ Files Added",

@@ -11,9 +11,9 @@ jobs:
     name: Build and analyze
     runs-on: ubuntu-latest
     env:
-     DB_URL_SPRING: ${{ secrets.DB_URL_SPRING }}
-     DB_USER_SPRING: ${{ secrets.DB_USER_SPRING }}
-     DB_PASS_SPRING: ${{ secrets.DB_PASS_SPRING }}
+     DB_URL_SPRING: ${{ secrets.DB_URL_COVOIT }}
+     DB_USER_SPRING: ${{ secrets.DB_USER_COVOIT }}
+     DB_PASS_SPRING: ${{ secrets.DB_PASS_COVOIT }}
     
     steps:
       - uses: actions/checkout@v4
