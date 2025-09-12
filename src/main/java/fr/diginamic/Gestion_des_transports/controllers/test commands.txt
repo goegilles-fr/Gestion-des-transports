@@ -1,0 +1,39 @@
+here is the list of commands for POSTMAN that I tested and are functional
+
+in postman add in headers jwt token from  POST http://localhost:8080/api/auth/login
+Authorization
+Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkbWl0cnlAay5jb20iLCJpYXQiOjE3NTc2ODEzMjYsImV4cCI6MTc1NzY4ODUyNn0.G0YIfphydsb-DfaWpXfm9L4fVxwbgzP2ABud7m6K_eU
+
+POST http://localhost:8080/api/auth/register
+{
+    "nom": "Dmitry",
+    "prenom": "K",
+    "email": "dmitry@k.com",
+    "password": "123",
+    "adresse": {
+        "numero": 123,
+        "libelle": "Main Street",
+        "codePostal": "34000",
+        "ville": "Montpellier"
+    }
+}
+
+POST http://localhost:8080/api/auth/login
+{
+"username":"dmitry@k.com",
+"password":"123"
+}
+
+
+
+
+
+
+GET http://localhost:8080/api/utilisateurs/5  working!!!
+GET http://localhost:8080/api/utilisateurs    Working!!!!
+GET http://localhost:8080/api/utilisateurs/by-role?role=ROLE_USER  Working!!!
+PUT http://localhost:8080/api/utilisateurs/5/verifier?estVerifie=true Working!!!
+
+
+
+

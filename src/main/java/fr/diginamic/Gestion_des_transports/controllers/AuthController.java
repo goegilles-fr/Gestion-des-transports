@@ -1,5 +1,7 @@
 package fr.diginamic.Gestion_des_transports.controllers;
 
+import fr.diginamic.Gestion_des_transports.entites.Utilisateur;
+import fr.diginamic.Gestion_des_transports.services.UtilisateurService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,6 +44,9 @@ public class AuthController {
     @Autowired
     private CustomUserDetailsService userDetailsService;
 
+    @Autowired
+    private UtilisateurService utilisateurService;
+
     /** Endpoint de LOGIN qui reçoit un body contenant 2 infos : username et password (non crypté)
      * @param authRequest le body de la requête HTTP
      * @return {@link ResponseEntity}
@@ -61,4 +66,27 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
         }
     }
+
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody Utilisateur utilisateur) {
+        try {
+            // Appelle le service pour gérer la logique d'inscription
+            Utilisateur nouvelUtilisateur = utilisateurService.inscrireUtilisateur(
+                    utilisateur.getNom(),
+                    utilisateur.getPrenom(),
+                    utilisateur.getEmail(),
+                    utilisateur.getPassword(),
+                    utilisateur.getAdresse()
+            );
+            return ResponseEntity.ok("User " + nouvelUtilisateur.getEmail() + " registered successfully!");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+
+
+
+
+
 }

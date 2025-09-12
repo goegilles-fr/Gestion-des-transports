@@ -1,16 +1,15 @@
 package fr.diginamic.Gestion_des_transports.security;
 
-import java.util.stream.Collectors;
+import java.util.Collections;
 
+import fr.diginamic.Gestion_des_transports.entites.Utilisateur;
+import fr.diginamic.Gestion_des_transports.repositories.UtilisateurRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
-import fr.diginamic.Gestion_des_transports.entites.RichardUser;
-import fr.diginamic.Gestion_des_transports.repositories.UserRepository;
 // MADE BY RICHARD !!!!!!!!
 // MADE BY RICHARD !!!!!!!!
 // MADE BY RICHARD !!!!!!!!
@@ -26,21 +25,19 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     /** Pour l'accès en base de données */
     @Autowired
-    private UserRepository userRepository;
+    private UtilisateurRepository UtilisateurRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        RichardUser user = userRepository.findByUsername(username)
-            .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        Utilisateur user = UtilisateurRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
 
         return new org.springframework.security.core.userdetails.User(
-            user.getUsername(),
-            user.getPassword(),
-            user.isEnabled(),
-            true, true, true,
-            user.getRoles().stream()
-                .map(role -> new SimpleGrantedAuthority(role.getName()))
-                .collect(Collectors.toSet())
+                user.getEmail(),
+                user.getPassword(),
+                user.getEstVerifie(),
+                true, true, true,
+                Collections.singletonList(new SimpleGrantedAuthority(user.getRole().name()))
         );
     }
 }
