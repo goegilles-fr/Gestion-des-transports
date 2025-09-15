@@ -99,7 +99,7 @@ jobs:
             cd /opt/covoit-app
             docker pull penumbriel/covoit:latest
             docker compose down
-            DEPLOY_OUTPUT=$(docker compose up -d)
+            DEPLOY_OUTPUT=$(docker compose up -d 2>&1)
             echo "$DEPLOY_OUTPUT"
             sleep 10
             if echo "$DEPLOY_OUTPUT" | grep -q "Started\|Created"; then
