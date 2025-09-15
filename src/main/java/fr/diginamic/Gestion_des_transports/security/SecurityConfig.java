@@ -13,57 +13,38 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-// MADE BY RICHARD !!!!!!!!
-// MADE BY RICHARD !!!!!!!!
-// MADE BY RICHARD !!!!!!!!
-// MADE BY RICHARD !!!!!!!!
+import org.springframework.web.cors.CorsConfigurationSource;
 
-/**
- * Configure la sécurité
- */
+
 @EnableWebSecurity
 @Configuration
 @EnableMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
 public class SecurityConfig {
-	
-	/** Filtre HTTP */
-	@Autowired
-	private JwtAuthenticationFilter jwtFilter;
 
-	/** Met en place la sécurité
-	 * @param http http security
-	 * @return SecurityFilterChain 
-	 * @throws Exception en cas de problème
-	 */
-	@Bean
-	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-	    http.csrf(AbstractHttpConfigurer::disable) // Désactiver CSRF
-	        .authorizeHttpRequests(authorize -> authorize
-	            .requestMatchers("/api/auth/**",
-                        "/swagger-ui/**",
-                        "/swagger-ui.html",
-                        "/v3/api-docs/**",
-                        "/v3/api-docs.yaml").permitAll()
-	            .anyRequest().authenticated() // Tous les autres endpoints sont authentifiés
-	        );
-	    http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-	    return http.build();
-	}
+    @Autowired
+    private JwtAuthenticationFilter jwtFilter;
 
-    /** AuthenticationManager est utilisé pour vérifier le mot de passe de l'utilisateur.
-     * Cet authenticationManager utilise {@link CustomUserDetailsService} par défaut
-     * @param authenticationConfiguration
-     * @return
-     * @throws Exception
-     */
+    @Autowired
+    private CorsConfigurationSource corsConfigurationSource;
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http.csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource)) // Add CORS configuration
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/api/auth/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()
+                        .anyRequest().authenticated()
+                );
+
+        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+        return http.build();
+    }
+
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
-    /** Encrypteur utilisé pour le cryptage du mot de passe
-     * @return {@link PasswordEncoder}
-     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
