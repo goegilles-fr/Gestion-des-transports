@@ -8,7 +8,7 @@ public class Adresse {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
 
     @Column(name = "numero")
     private Integer numero;
@@ -34,11 +34,11 @@ public class Adresse {
     }
 
     // Getters and Setters
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
