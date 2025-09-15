@@ -30,10 +30,10 @@ public interface VehiculeMapper {
     // Vehicule personnel vers DTO
     @Mapping(target = "type", constant = "PERSONNEL")
     @Mapping(target = "statut", ignore = true)
-    @Mapping(target = "motorisation", ignore = true)
-    @Mapping(target = "co2ParKm", ignore = true)
-    @Mapping(target = "photo", ignore = true)
-    @Mapping(target = "categorie", ignore = true)
+    @Mapping(target = "motorisation", source = "motorisation")
+    @Mapping(target = "co2ParKm", source = "co2ParKm")
+    @Mapping(target = "photo", source = "photo")
+    @Mapping(target = "categorie", source = "categorie")
     @Mapping(target = "utilisateurId", source = "utilisateur.id")
     VehiculeDTO toDto(VehiculePersonnel v);
 
@@ -59,7 +59,11 @@ public interface VehiculeMapper {
     @Mapping(target = "marque", source = "marque")
     @Mapping(target = "modele", source = "modele")
     @Mapping(target = "nbPlaces", source = "nbPlaces")
-    @Mapping(target = "utilisateur", ignore = true) // à lier dans le service via repo
+    @Mapping(target = "motorisation", source = "motorisation")
+    @Mapping(target = "co2ParKm", source = "co2ParKm")
+    @Mapping(target = "photo", source = "photo")
+    @Mapping(target = "categorie", source = "categorie")
+    @Mapping(target = "utilisateur", ignore = true)
     VehiculePersonnel toPersonnelEntity(VehiculeDTO dto);
 
     // --------- Helpers statut ---------

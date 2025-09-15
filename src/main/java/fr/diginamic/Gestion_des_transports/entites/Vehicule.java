@@ -3,6 +3,8 @@ package fr.diginamic.Gestion_des_transports.entites;
 import fr.diginamic.Gestion_des_transports.enums.Categorie;
 import fr.diginamic.Gestion_des_transports.enums.Motorisation;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
@@ -12,21 +14,25 @@ public abstract class Vehicule {
     @GeneratedValue(strategy = GenerationType.TABLE)
     private int id;
 
+    @NotBlank
     @Column(name = "immatriculation", unique = true)
     private String immatriculation;
 
+    @NotBlank
     @Column(name = "nb_places")
     private Integer nbPlaces;
 
+    @NotBlank
     @Column(name = "modele")
     private String modele;
 
     @Column(name = "co2_par_km")
-    private Double co2ParKm;
+    private Integer co2ParKm;
 
     @Column(name = "photo")
     private String photo;
 
+    @NotBlank
     @Column(name = "marque")
     private String marque;
 
@@ -44,7 +50,7 @@ public abstract class Vehicule {
     // Default constructor
     public Vehicule() {}
 
-    public Vehicule(int id, String immatriculation, Integer nbPlaces, String modele, Double co2ParKm, String photo, String marque, Motorisation motorisation, Categorie categorie) {
+    public Vehicule(int id, String immatriculation, Integer nbPlaces, String modele, Integer co2ParKm, String photo, String marque, Motorisation motorisation, Categorie categorie) {
         this.id = id;
         this.immatriculation = immatriculation;
         this.nbPlaces = nbPlaces;
@@ -89,11 +95,11 @@ public abstract class Vehicule {
         this.modele = modele;
     }
 
-    public Double getCo2ParKm() {
+    public Integer getCo2ParKm() {
         return co2ParKm;
     }
 
-    public void setCo2ParKm(Double co2ParKm) {
+    public void setCo2ParKm(Integer co2ParKm) {
         this.co2ParKm = co2ParKm;
     }
 

@@ -18,7 +18,7 @@ public class VehiculePersonnel extends Vehicule {
         super();
     }
 
-    public VehiculePersonnel(int id, String immatriculation, Integer nbPlaces, String modele, Double co2ParKm, String photo, String marque, Motorisation motorisation, Categorie categorie, Utilisateur utilisateur) {
+    public VehiculePersonnel(int id, String immatriculation, Integer nbPlaces, String modele, Integer co2ParKm, String photo, String marque, Motorisation motorisation, Categorie categorie, Utilisateur utilisateur) {
         super(id, immatriculation, nbPlaces, modele, co2ParKm, photo, marque, motorisation, categorie);
         this.utilisateur = utilisateur;
     }

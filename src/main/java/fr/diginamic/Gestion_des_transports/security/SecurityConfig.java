@@ -40,6 +40,7 @@ public class SecurityConfig {
 	    http.csrf(AbstractHttpConfigurer::disable) // Désactiver CSRF
 	        .authorizeHttpRequests(authorize -> authorize
 	            .requestMatchers("/api/auth/**").permitAll() // Autoriser /api/auth sans authentification
+                .requestMatchers("/vehicules-personnels/**", "/vehicules-entreprise/**", "/reservations-vehicules/**").permitAll()
 	            .anyRequest().authenticated() // Tous les autres endpoints sont authentifiés
 	        );
 	    http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
