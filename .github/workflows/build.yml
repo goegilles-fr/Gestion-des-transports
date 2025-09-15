@@ -98,9 +98,21 @@ jobs:
           script: |
             cd /opt/covoit-app
             docker pull penumbriel/covoit:latest
-            docker-compose down
-            docker-compose up -d
-            echo "✅ Deployment completed successfully!"
+            docker compose down
+            DEPLOY_OUTPUT=$(docker compose up -d)
+            echo "$DEPLOY_OUTPUT"
+            sleep 10
+            if echo "$DEPLOY_OUTPUT" | grep -q "Started\|Created"; then
+              echo "✅ Container started successfully!"
+              sleep 5
+              echo "Final status:"
+              docker compose ps
+              echo "✅ Deployment completed successfully!"
+            else
+              echo "❌ Deployment failed - container not started!"
+              docker compose logs
+              exit 1
+            fi
             
       - name: Send Discord deploy notification
         if: success()
@@ -108,7 +120,7 @@ jobs:
           PAYLOAD=$(cat <<EOF
           {
             "embeds": [{
-              "description": "🎉 Covoit Backend app has been successfully deployed to [dev.goegilles.fr](https://dev.goegilles.fr)",
+              "description": "🎉 Covoit Backend app has been successfully deployed to [dev.goegilles.fr](https://dev.goegilles.fr)\n\n📚 You can checkout the API here: [Swagger UI](https://dev.goegilles.fr/swagger-ui/index.html)",
               "color": 3066993
             }]
           }
