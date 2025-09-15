@@ -1,8 +1,4 @@
 package fr.diginamic.Gestion_des_transports.controllers;
-// MADE BY RICHARD !!!!!!!!
-// MADE BY RICHARD !!!!!!!!
-// MADE BY RICHARD !!!!!!!!
-// MADE BY RICHARD !!!!!!!!
 
 /**
  * Sert à retourner le token JWT dans le body de la réponse
