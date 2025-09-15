@@ -1,8 +1,11 @@
 package fr.diginamic.Gestion_des_transports.controllers;
 
 import fr.diginamic.Gestion_des_transports.dto.UtilisateurDto;
+import fr.diginamic.Gestion_des_transports.dto.VehiculeDTO;
 import fr.diginamic.Gestion_des_transports.entites.Utilisateur;
+import fr.diginamic.Gestion_des_transports.entites.VehiculePersonnel;
 import fr.diginamic.Gestion_des_transports.mapper.UtilisateurMapper;
+import fr.diginamic.Gestion_des_transports.mapper.VehiculeMapper;
 import fr.diginamic.Gestion_des_transports.services.UtilisateurService;
 import fr.diginamic.Gestion_des_transports.enums.RoleEnum;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,12 +13,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
-
+import org.springframework.security.core.Authentication;
 @RestController
 @RequestMapping("/api/utilisateurs")
 public class UtilisateurController {
@@ -26,6 +26,8 @@ public class UtilisateurController {
     @Autowired
     private UtilisateurMapper utilisateurMapper;
 
+    @Autowired
+    private VehiculeMapper vehiculeMapper;
     /**
      * Récupère tous les utilisateurs
      * @return la liste des utilisateurs sous forme de DTOs
@@ -42,12 +44,7 @@ public class UtilisateurController {
         return ResponseEntity.ok(utilisateursDto);
     }
 
-    /**
-     * Met à jour un utilisateur existant
-     * @param id l'identifiant de l'utilisateur à mettre à jour
-     * @param utilisateurDto les nouvelles données de l'utilisateur
-     * @return l'utilisateur mis à jour sous forme de DTO
-     */
+
 
     /**
      * Endpoint for getting a user by ID.
@@ -80,6 +77,75 @@ public class UtilisateurController {
             // Retourner le message d'erreur en JSON
             Map<String, String> erreur = new HashMap<>();
             erreur.put("error", e.getMessage()); // Message d'erreur du service
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erreur);
+        }
+    }
+
+
+    /**
+     * @param authentication
+     * @return
+     *
+     *   http://localhost:8080/api/utilisateurs/profile
+     */
+    @GetMapping("/profile")
+    public ResponseEntity<?> obtenirProfilUtilisateurConnecte(Authentication authentication) {
+        try {
+            // Récupérer l'email de l'utilisateur connecté depuis le token JWT
+            String emailUtilisateurConnecte = authentication.getName();
+
+            // Chercher l'utilisateur par email
+            Utilisateur utilisateur = utilisateurService.obtenirUtilisateurParEmail(emailUtilisateurConnecte);
+
+            // ENTITE -> DTO pour éviter l'exposition du mot de passe
+            UtilisateurDto utilisateurDto = utilisateurMapper.versDto(utilisateur);
+
+            return ResponseEntity.ok(utilisateurDto);
+
+        } catch (RuntimeException e) {
+            Map<String, String> erreur = new HashMap<>();
+            erreur.put("error", "Utilisateur non trouvé");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erreur);
+        }
+    }
+
+
+    /**
+     * @param authentication
+     * @return
+     *
+     * http://localhost:8080/api/utilisateurs/mavoiture
+     */
+    @GetMapping("/mavoiture")
+    public ResponseEntity<?> obtenirMaVoiture(Authentication authentication) {
+        try {
+            // Récupérer l'email de l'utilisateur connecté depuis le token JWT
+            String emailUtilisateurConnecte = authentication.getName();
+
+            // Chercher l'utilisateur par email
+            Utilisateur utilisateur = utilisateurService.obtenirUtilisateurParEmail(emailUtilisateurConnecte);
+
+            // Vérifier si l'utilisateur a un véhicule personnel
+            Set<VehiculePersonnel> vehiculesPersonnels = utilisateur.getVehiculesPersonnels();
+
+            if (vehiculesPersonnels != null && !vehiculesPersonnels.isEmpty()) {
+                // L'utilisateur ne peut avoir qu'une seule voiture personnelle
+                VehiculePersonnel maVoiture = vehiculesPersonnels.iterator().next();
+
+                // ENTITE -> DTO
+                VehiculeDTO voitureDto = vehiculeMapper.toDto(maVoiture);
+
+                return ResponseEntity.ok(voitureDto);
+            } else {
+                // Aucun véhicule personnel enregistré
+                Map<String, String> message = new HashMap<>();
+                message.put("message", "Vous n'avez aucune voiture personnelle enregistrée");
+                return ResponseEntity.ok(message);
+            }
+
+        } catch (RuntimeException e) {
+            Map<String, String> erreur = new HashMap<>();
+            erreur.put("error", "Utilisateur non trouvé");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erreur);
         }
     }
