@@ -28,4 +28,11 @@ public interface VehiculePersonnelRepository extends JpaRepository<VehiculePerso
     List<VehiculePersonnel> findByUtilisateurId(@Param("utilisateurId") Long utilisateurId);
 
     boolean existsByImmatriculation(String immatriculation);
+
+
+    boolean existsByUtilisateurId(Long utilisateurId);
+
+    Optional<VehiculePersonnel> findFirstByUtilisateurId(Long utilisateurId);
+
+    boolean existsByUtilisateurIdAndIdNot(Long utilisateurId, Long id);
 }
