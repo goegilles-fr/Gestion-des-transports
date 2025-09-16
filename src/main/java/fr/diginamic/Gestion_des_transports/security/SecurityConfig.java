@@ -21,6 +21,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 @EnableMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
 public class SecurityConfig {
 
+
     @Autowired
     private JwtAuthenticationFilter jwtFilter;
 
@@ -39,6 +40,7 @@ public class SecurityConfig {
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
+
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {

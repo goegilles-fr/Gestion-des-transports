@@ -25,7 +25,7 @@ public class VehiculeEntreprise extends Vehicule {
         this.statut = statut;
     }
 
-    public VehiculeEntreprise(int id, String immatriculation, Integer nbPlaces, String modele, Double co2ParKm, String photo, String marque, Motorisation motorisation, Categorie categorie, StatutVehicule statut) {
+    public VehiculeEntreprise(Long id, String immatriculation, Integer nbPlaces, String modele, Integer co2ParKm, String photo, String marque, Motorisation motorisation, Categorie categorie, StatutVehicule statut) {
         super(id, immatriculation, nbPlaces, modele, co2ParKm, photo, marque, motorisation, categorie);
         this.statut = statut;
     }

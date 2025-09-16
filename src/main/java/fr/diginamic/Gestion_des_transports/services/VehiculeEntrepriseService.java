@@ -1,4 +1,4 @@
-package fr.diginamic.Gestion_des_transports.service;
+package fr.diginamic.Gestion_des_transports.services;
 
 import fr.diginamic.Gestion_des_transports.dto.VehiculeDTO;
 import java.util.List;
