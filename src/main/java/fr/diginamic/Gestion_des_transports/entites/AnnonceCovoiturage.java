@@ -10,7 +10,7 @@ public class AnnonceCovoiturage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
 
     @Column(name = "heure_depart")
     private LocalDateTime heureDepart;
@@ -56,11 +56,11 @@ public class AnnonceCovoiturage {
     }
 
     // Getters et Setters
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
