@@ -1,7 +1,7 @@
 package fr.diginamic.Gestion_des_transports.controllers;
 
 import fr.diginamic.Gestion_des_transports.dto.VehiculeDTO;
-import fr.diginamic.Gestion_des_transports.service.VehiculeEntrepriseService;
+import fr.diginamic.Gestion_des_transports.services.VehiculeEntrepriseService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
