@@ -1,5 +1,6 @@
 package fr.diginamic.Gestion_des_transports.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +24,8 @@ public class HelloController {
 	 */
 	@GetMapping("/hello")
 	@Secured("ADMIN")
+    @Operation(
+            summary = "To test if you are admin")
 	public ResponseEntity<?> getHello() {
 		return ResponseEntity.ok("Hello");
 	}
@@ -32,6 +35,8 @@ public class HelloController {
 	 */
 	@GetMapping("/hi")
 	@Secured("USER")
+    @Operation(
+            summary = "To test if you are user")
 	public ResponseEntity<?> getHi() {
 		return ResponseEntity.ok("Hi");
 	}

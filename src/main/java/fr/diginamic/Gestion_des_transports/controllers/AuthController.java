@@ -4,6 +4,7 @@ import fr.diginamic.Gestion_des_transports.dto.RegistrationDto;
 import fr.diginamic.Gestion_des_transports.entites.Utilisateur;
 import fr.diginamic.Gestion_des_transports.mapper.AdresseMapper;
 import fr.diginamic.Gestion_des_transports.services.UtilisateurService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -55,6 +56,8 @@ public class AuthController {
      * @return {@link ResponseEntity}
      */
     @PostMapping("/login")
+    @Operation(
+            summary = "Login. username+password ")
     public ResponseEntity<?> login(@RequestBody AuthRequest authRequest) {
         try {
             authenticationManager.authenticate(
@@ -71,6 +74,8 @@ public class AuthController {
     }
 
     @PostMapping("/register")
+    @Operation(
+            summary = "Register. Nom Prenom email password, adress complete ")
     public ResponseEntity<?> register(@Valid @RequestBody RegistrationDto registrationDto,
                                       BindingResult bindingResult) {
         //System.out.println("Libelle value: '" + registrationDto.adresse().libelle() + "'");

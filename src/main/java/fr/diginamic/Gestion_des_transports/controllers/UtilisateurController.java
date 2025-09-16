@@ -8,6 +8,7 @@ import fr.diginamic.Gestion_des_transports.mapper.UtilisateurMapper;
 import fr.diginamic.Gestion_des_transports.mapper.VehiculeMapper;
 import fr.diginamic.Gestion_des_transports.services.UtilisateurService;
 import fr.diginamic.Gestion_des_transports.enums.RoleEnum;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +34,8 @@ public class UtilisateurController {
      * @return la liste des utilisateurs sous forme de DTOs
      */
     @GetMapping
+    @Operation(
+            summary = "Obtenir la liste de tous les utilisateurs.")
     public ResponseEntity<List<UtilisateurDto>> obtenirTousLesUtilisateurs() {
         List<Utilisateur> utilisateurs = utilisateurService.obtenirTousLesUtilisateurs();
 
@@ -51,6 +54,8 @@ public class UtilisateurController {
      * Accessible at GET /api/utilisateurs/{id}
      */
     @GetMapping("/{id}")
+    @Operation(
+            summary = "Obtenir des informations sur l'utilisateur par id.")
     public ResponseEntity<?> obtenirUtilisateurParId(@PathVariable Long id) {
         try {
             Utilisateur utilisateur = utilisateurService.obtenirUtilisateurParId(id);
@@ -67,6 +72,8 @@ public class UtilisateurController {
     //  EXAMPLE
     // GET  http://localhost:8080/api/utilisateurs/email/harrypot@gmail.com
     @GetMapping("/email/{email}")
+    @Operation(
+            summary = "Obtenir des informations sur l'utilisateur par email.")
     public ResponseEntity<?> obtenirUtilisateurParEmail(@PathVariable String email) {
         try {
             Utilisateur utilisateur = utilisateurService.obtenirUtilisateurParEmail(email);
@@ -89,6 +96,8 @@ public class UtilisateurController {
      *   http://localhost:8080/api/utilisateurs/profile
      */
     @GetMapping("/profile")
+    @Operation(
+            summary = "Obtenir des informations sur l'utilisateur par token. (Obtenez des informations sur vous-même) ")
     public ResponseEntity<?> obtenirProfilUtilisateurConnecte(Authentication authentication) {
         try {
             // Récupérer l'email de l'utilisateur connecté depuis le token JWT
@@ -117,6 +126,8 @@ public class UtilisateurController {
      * http://localhost:8080/api/utilisateurs/mavoiture
      */
     @GetMapping("/mavoiture")
+    @Operation(
+            summary = "Obtenir des informations sur vouiture perso par token. (prends ma voiture)")
     public ResponseEntity<?> obtenirMaVoiture(Authentication authentication) {
         try {
             // Récupérer l'email de l'utilisateur connecté depuis le token JWT
@@ -158,6 +169,8 @@ public class UtilisateurController {
      */
 
     @GetMapping("/by-role")
+    @Operation(
+            summary = "rechercher tous les utilisateurs avec un rôle")
     public ResponseEntity<List<UtilisateurDto>> getUtilisateursByRole(@RequestParam("role") RoleEnum role) {
         List<Utilisateur> utilisateurs = utilisateurService.obtenirUtilisateursParRole(role);
         // ENTITE -> DTO
@@ -176,6 +189,8 @@ public class UtilisateurController {
      * Accessible at GET /api/utilisateurs/non-verifies
      */
     @GetMapping("/non-verifies")
+    @Operation(
+            summary = "rechercher tous les utilisateurs non vérifiés")
     public ResponseEntity<List<UtilisateurDto>> getUtilisateursNonVerifies() {
         List<Utilisateur> utilisateurs = utilisateurService.obtenirUtilisateursNonVerifies();
         // ENTITE -> DTO
@@ -191,6 +206,9 @@ public class UtilisateurController {
      */
 
     @PutMapping("/{id}/bannir")
+    @Operation(
+            summary = "bannir l'utilisateur par identifiant (avec le paramètre vrai ou faux)")
+
     public ResponseEntity<?> bannirUtilisateur(@PathVariable Long id, @RequestParam("estBanni") boolean estBanni) {
         try {
             Utilisateur utilisateur = utilisateurService.bannirUtilisateur(id, estBanni);
@@ -217,6 +235,8 @@ public class UtilisateurController {
      *
      */
     @PutMapping("/{id}/verifier")
+    @Operation(
+            summary = "vérifier l'utilisateur par identifiant (avec le paramètre vrai ou faux)")
     public ResponseEntity<?> verifierUtilisateur(@PathVariable Long id, @RequestParam("estVerifie") boolean estVerifie) {
         try {
             Utilisateur utilisateur = utilisateurService.verifierUtilisateur(id, estVerifie);
