@@ -12,7 +12,7 @@ public abstract class Vehicule {
 
     @Id
     @GeneratedValue(strategy = GenerationType.TABLE)
-    private int id;
+    private Long id;
 
     @NotBlank
     @Column(name = "immatriculation", unique = true)
@@ -50,7 +50,7 @@ public abstract class Vehicule {
     // Default constructor
     public Vehicule() {}
 
-    public Vehicule(int id, String immatriculation, Integer nbPlaces, String modele, Integer co2ParKm, String photo, String marque, Motorisation motorisation, Categorie categorie) {
+    public Vehicule(Long id, String immatriculation, Integer nbPlaces, String modele, Integer co2ParKm, String photo, String marque, Motorisation motorisation, Categorie categorie) {
         this.id = id;
         this.immatriculation = immatriculation;
         this.nbPlaces = nbPlaces;
@@ -63,11 +63,11 @@ public abstract class Vehicule {
     }
 
     // Getters and Setters
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

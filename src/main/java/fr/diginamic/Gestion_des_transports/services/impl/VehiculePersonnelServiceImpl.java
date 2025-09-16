@@ -68,7 +68,7 @@ public class VehiculePersonnelServiceImpl implements VehiculePersonnelService {
             throw new BadRequestException("co2ParKm doit être >= 0.");
         }
         if (repo.existsByUtilisateurId(dto.utilisateurId())) {
-            Integer existingId = repo.findFirstByUtilisateurId(dto.utilisateurId()).map(VehiculePersonnel::getId).orElse(null);
+            Long existingId = repo.findFirstByUtilisateurId(dto.utilisateurId()).map(VehiculePersonnel::getId).orElse(null);
             throw new ConflictException("L'utilisateur " + dto.utilisateurId() +
                     " possède déjà un véhicule personnel (id=" + existingId + ").");
         }
@@ -101,11 +101,11 @@ public class VehiculePersonnelServiceImpl implements VehiculePersonnelService {
         }
         if (dto.utilisateurId() != null) {
             Long newUserId = dto.utilisateurId();
-            Integer currentUserId = entity.getUtilisateur() != null ? entity.getUtilisateur().getId() : null;
+            Long currentUserId = entity.getUtilisateur() != null ? entity.getUtilisateur().getId() : null;
 
             if (!Objects.equals(currentUserId, newUserId)) {
                 if (repo.existsByUtilisateurId(newUserId)) {
-                    Integer existingId = repo.findFirstByUtilisateurId(newUserId)
+                    Long existingId = repo.findFirstByUtilisateurId(newUserId)
                             .map(VehiculePersonnel::getId).orElse(null);
                     throw new ConflictException("L'utilisateur " + newUserId +
                             " possède déjà un véhicule personnel (id=" + existingId + ").");
