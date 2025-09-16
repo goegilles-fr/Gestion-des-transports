@@ -10,7 +10,7 @@ public class Utilisateur {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
 
     @Column(name = "nom")
     private String nom;
@@ -39,7 +39,7 @@ public class Utilisateur {
     private Boolean estVerifie = false;
 
     @Column(name = "est_supprime")
-    private Boolean estsupprime = false;
+    private Boolean estSupprime = false;
 
 
     @OneToMany(mappedBy = "utilisateur", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -66,11 +66,11 @@ public class Utilisateur {
     }
 
     // Getters and Setters
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -149,5 +149,24 @@ public class Utilisateur {
     public void setAnnoncesResponsables(Set<AnnonceCovoiturage> annoncesResponsables) {
         this.annoncesResponsables = annoncesResponsables;
     }
+
+
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public Boolean getEstSupprime() {
+        return estSupprime;
+    }
+
+    public void setEstSupprime(Boolean estSupprime) {
+        this.estSupprime = estSupprime;
+    }
+
 
 }

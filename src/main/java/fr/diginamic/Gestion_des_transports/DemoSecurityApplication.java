@@ -1,12 +1,14 @@
 package fr.diginamic.Gestion_des_transports;
 
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
  * Démarre l'application Spring Boot
  */
 @SpringBootApplication
+
 public class DemoSecurityApplication {
 
 	/** Méthode exécutable
