@@ -3,6 +3,7 @@ package fr.diginamic.Gestion_des_transports.entites;
 import fr.diginamic.Gestion_des_transports.enums.Categorie;
 import fr.diginamic.Gestion_des_transports.enums.Motorisation;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -18,7 +19,7 @@ public abstract class Vehicule {
     @Column(name = "immatriculation", unique = true)
     private String immatriculation;
 
-    @NotBlank
+    @Min(1)
     @Column(name = "nb_places")
     private Integer nbPlaces;
 

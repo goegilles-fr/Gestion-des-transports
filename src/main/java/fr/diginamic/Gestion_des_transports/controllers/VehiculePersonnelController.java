@@ -1,24 +1,31 @@
 package fr.diginamic.Gestion_des_transports.controllers;
 
 import fr.diginamic.Gestion_des_transports.dto.VehiculeDTO;
+import fr.diginamic.Gestion_des_transports.entites.Utilisateur;
+import fr.diginamic.Gestion_des_transports.services.UtilisateurService;
 import fr.diginamic.Gestion_des_transports.services.VehiculePersonnelService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
-@RequestMapping("/vehicules-personnels")
+@RequestMapping("/api/vehicules-personnels")
 public class VehiculePersonnelController {
 
     private final VehiculePersonnelService service;
+    private final UtilisateurService utilisateurService;
 
-    public VehiculePersonnelController(VehiculePersonnelService service) {
+    public VehiculePersonnelController(VehiculePersonnelService service, UtilisateurService utilisateurService) {
         this.service = service;
+        this.utilisateurService = utilisateurService;
     }
 
     @GetMapping
@@ -32,28 +39,44 @@ public class VehiculePersonnelController {
     }
 
     @PostMapping
-    public ResponseEntity<VehiculeDTO> create(@Valid @RequestBody VehiculeDTO dto,
-                                                       UriComponentsBuilder uriBuilder) {
-        VehiculeDTO created = service.create(dto);
-        URI location = uriBuilder.path("/vehicules-personnels/{id}")
-                .buildAndExpand(created.id()).toUri();
-        return ResponseEntity.created(location).body(created);
+    public ResponseEntity<VehiculeDTO> create(@AuthenticationPrincipal UserDetails userDetails, @Valid @RequestBody VehiculeDTO dto) {
+        Utilisateur user = getUtilisateur(userDetails);
+
+        VehiculeDTO created = service.create(user.getId(), dto);
+
+        return ResponseEntity.ok(created);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<VehiculeDTO> update(@PathVariable Long id,
+    @PutMapping
+    public ResponseEntity<VehiculeDTO> update(@AuthenticationPrincipal UserDetails userDetails,
                                                        @Valid @RequestBody VehiculeDTO dto) {
-        return ResponseEntity.ok(service.update(id, dto));
+        Utilisateur user = getUtilisateur(userDetails);
+
+        return ResponseEntity.ok(service.update(user.getId(), dto));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        service.delete(id);
+    @DeleteMapping
+    public ResponseEntity<Void> delete(@AuthenticationPrincipal UserDetails userDetails) {
+        Utilisateur user = getUtilisateur(userDetails);
+
+        service.deleteByUtilisateurId(user.getId());
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/utilisateur/{utilisateurId}")
-    public ResponseEntity<List<VehiculeDTO>> getByUtilisateur(@PathVariable Long utilisateurId) {
-        return ResponseEntity.ok(service.findByUtilisateurId(utilisateurId));
+    @GetMapping("/utilisateur")
+    public ResponseEntity<List<VehiculeDTO>> getByUtilisateur(@AuthenticationPrincipal UserDetails userDetails) {
+        Utilisateur user = getUtilisateur(userDetails);
+
+        return ResponseEntity.ok(service.findByUtilisateurId(user.getId()));
+    }
+
+    private Utilisateur getUtilisateur(UserDetails userDetails) {
+        String email = userDetails.getUsername();
+        Utilisateur user = Optional.ofNullable(utilisateurService.obtenirUtilisateurParEmail(email))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+        if (user == null || !user.getEstVerifie() || user.getEstBanni()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Compte non vérifié ou banni");
+        }
+        return user;
     }
 }
