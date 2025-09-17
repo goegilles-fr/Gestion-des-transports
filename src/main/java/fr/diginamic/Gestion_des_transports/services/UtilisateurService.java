@@ -4,6 +4,7 @@ import fr.diginamic.Gestion_des_transports.entites.Adresse;
 import fr.diginamic.Gestion_des_transports.entites.Utilisateur;
 import fr.diginamic.Gestion_des_transports.enums.RoleEnum;
 import fr.diginamic.Gestion_des_transports.repositories.UtilisateurRepository;
+import fr.diginamic.Gestion_des_transports.tools.EmailSender;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +28,8 @@ public class UtilisateurService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private EmailSender emailSender;
     /**
      * Inscrire un nouvel utilisateur
      * @param nom Le nom de l'utilisateur
@@ -58,6 +61,14 @@ public class UtilisateurService {
             Adresse adresseSauvegardee = adresseService.creerAdresse(adresse);
             nouvelUtilisateur.setAdresse(adresseSauvegardee);
         }
+
+        emailSender.send(
+                email,
+                "Bienvenue dans notre plateforme de covoiturage !",
+                "Hello " + prenom + " " + nom + ", welcome to covoit",
+                "Bienvenue sur Covoit"
+        );
+
 
         return utilisateurRepository.save(nouvelUtilisateur);
     }
