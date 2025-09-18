@@ -11,9 +11,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -65,12 +67,23 @@ public class AuthController {
             );
 
             UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getUsername());
-            String jwt = jwtUtil.generateToken(userDetails.getUsername());
 
+            Utilisateur utilisateur = utilisateurService.obtenirUtilisateurParEmail(userDetails.getUsername());
+
+            if (utilisateur.getEstBanni()) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("BANNED");
+            if (utilisateur.getEstSupprime()) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("DELETED");
+
+
+            String jwt = jwtUtil.generateToken(userDetails.getUsername());
             return ResponseEntity.ok(new AuthResponse(jwt));
+
+        } catch (DisabledException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("NON_VERIFIED");
         } catch (BadCredentialsException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("BAD_CREDENTIALS");
         }
+
+
     }
 
     @PostMapping("/register")
