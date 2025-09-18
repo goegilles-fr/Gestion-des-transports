@@ -38,6 +38,15 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST,   "/api/vehicules-entreprise").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT,    "/api/vehicules-entreprise/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/vehicules-entreprise/**").hasRole("ADMIN")
+
+
+                        .requestMatchers(HttpMethod.PUT,    "/api/utilisateurs/*/verifier").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT,    "/api/utilisateurs/*/bannir").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET,    "/api/utilisateurs/non-verifies").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET,    "/api/utilisateurs/by-role").hasRole("ADMIN")
+
+
+
                         .anyRequest().authenticated()
                 );
 
