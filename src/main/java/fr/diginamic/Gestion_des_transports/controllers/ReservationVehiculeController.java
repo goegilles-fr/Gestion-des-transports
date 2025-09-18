@@ -31,9 +31,7 @@ public class ReservationVehiculeController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ReservationVehiculeDTO>> getAll(@AuthenticationPrincipal UserDetails userDetails) {
-        Utilisateur user = getUtilisateur(userDetails);
-        checkAdmin(user);
+    public ResponseEntity<List<ReservationVehiculeDTO>> getAll() {
 
         return ResponseEntity.ok(service.findAll());
     }
@@ -51,7 +49,7 @@ public class ReservationVehiculeController {
         Utilisateur user = getUtilisateur(userDetails);
 
         ReservationVehiculeDTO created = service.create(user, dto);
-        URI location = uriBuilder.path("/reservations-vehicules/{id}")
+        URI location = uriBuilder.path("/api/reservations-vehicules/{id}")
                 .buildAndExpand(created.id()).toUri();
         return ResponseEntity.created(location).body(created);
     }
@@ -81,31 +79,14 @@ public class ReservationVehiculeController {
 
     @GetMapping("/vehicule/{vehiculeId}")
     public ResponseEntity<List<ReservationVehiculeDTO>> getByVehicule(@AuthenticationPrincipal UserDetails userDetails, @PathVariable Long vehiculeId) {
-        Utilisateur user = getUtilisateur(userDetails);
-        checkAdmin(user);
 
         return ResponseEntity.ok(service.findByVehiculeId(vehiculeId));
     }
 
     private Utilisateur getUtilisateur(UserDetails userDetails) {
         String email = userDetails.getUsername();
-        Utilisateur user = Optional.ofNullable(utilisateurService.obtenirUtilisateurParEmail(email))
+
+        return Optional.ofNullable(utilisateurService.obtenirUtilisateurParEmail(email))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
-
-        checkUser(user);
-
-        return user;
-    }
-
-    private void checkUser(Utilisateur user) {
-        if (user == null || !user.getEstVerifie() || user.getEstBanni()) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Compte non vérifié ou banni");
-        }
-    }
-
-    private void checkAdmin(Utilisateur user) {
-        if (user.getRole() != RoleEnum.ROLE_ADMIN){
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Compte non admin");
-        }
     }
 }

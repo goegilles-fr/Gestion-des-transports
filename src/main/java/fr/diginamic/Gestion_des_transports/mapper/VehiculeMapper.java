@@ -16,7 +16,6 @@ public interface VehiculeMapper {
     // --------- ENTITE -> DTO ---------
 
     // Vehicule d'entreprise vers DTO
-    @Mapping(target = "type", constant = "ENTREPRISE")
     @Mapping(target = "statut", source = "statut")
     @Mapping(target = "motorisation", source = "motorisation")
     @Mapping(target = "co2ParKm", source = "co2ParKm")
@@ -28,7 +27,6 @@ public interface VehiculeMapper {
     List<VehiculeDTO> toDtoEntrepriseList(List<VehiculeEntreprise> list);
 
     // Vehicule personnel vers DTO
-    @Mapping(target = "type", constant = "PERSONNEL")
     @Mapping(target = "statut", ignore = true)
     @Mapping(target = "motorisation", source = "motorisation")
     @Mapping(target = "co2ParKm", source = "co2ParKm")

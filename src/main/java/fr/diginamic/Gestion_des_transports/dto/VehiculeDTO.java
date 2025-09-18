@@ -19,8 +19,6 @@ import jakarta.validation.constraints.PositiveOrZero;
 public record VehiculeDTO(
         Long id,
 
-        @NotNull(message = "type est obligatoire (PERSONNEL ou ENTREPRISE")
-        VehiculeType type,
         @NotBlank(message = "immatriculation est obligatoire")
         String immatriculation,
         @NotBlank(message = "marque est obligatoire")
@@ -42,65 +40,4 @@ public record VehiculeDTO(
 
         // --- Spécifique PERSONNEL (optionnel) ---
         Long utilisateurId
-) {
-    // Fabrique pour un véhicule d'entreprise
-    public static VehiculeDTO ofEntreprise(
-            Long id,
-            String immatriculation,
-            String marque,
-            String modele,
-            Integer nbPlaces,
-            StatutVehicule statut,
-            Motorisation motorisation,
-            Integer co2ParKm,
-            String photo,
-            Categorie categorie
-    ) {
-        return new VehiculeDTO(
-                id,
-                VehiculeType.ENTREPRISE,
-                immatriculation,
-                marque,
-                modele,
-                nbPlaces,
-                motorisation,
-                co2ParKm,
-                photo,
-                categorie,
-                statut,
-                null // utilisateurId
-        );
-    }
-
-    // Fabrique pour un véhicule personnel
-    public static VehiculeDTO ofPersonnel(
-            Long id,
-            String immatriculation,
-            String marque,
-            String modele,
-            Integer nbPlaces,
-            Motorisation motorisation,
-            Integer co2ParKm,
-            String photo,
-            Categorie categorie,
-            Long utilisateurId
-    ) {
-        return new VehiculeDTO(
-                id,
-                VehiculeType.PERSONNEL,
-                immatriculation,
-                marque,
-                modele,
-                nbPlaces,
-                motorisation,
-                co2ParKm,
-                photo,
-                categorie,
-                null,   // statut
-                utilisateurId
-        );
-    }
-
-    // Types de véhicules couverts par ce DTO
-    public enum VehiculeType { PERSONNEL, ENTREPRISE }
-}
+) {}

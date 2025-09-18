@@ -72,11 +72,8 @@ public class VehiculePersonnelController {
 
     private Utilisateur getUtilisateur(UserDetails userDetails) {
         String email = userDetails.getUsername();
-        Utilisateur user = Optional.ofNullable(utilisateurService.obtenirUtilisateurParEmail(email))
+
+        return Optional.ofNullable(utilisateurService.obtenirUtilisateurParEmail(email))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
-        if (user == null || !user.getEstVerifie() || user.getEstBanni()) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Compte non vérifié ou banni");
-        }
-        return user;
     }
 }

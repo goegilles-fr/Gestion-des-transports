@@ -42,9 +42,6 @@ public class VehiculeEntrepriseServiceImpl implements VehiculeEntrepriseService 
 
     @Override
     public VehiculeDTO create(VehiculeDTO dto) {
-        if (dto.type() == null || dto.type() != VehiculeDTO.VehiculeType.ENTREPRISE) {
-            throw new BadRequestException("Type de véhicule invalide: attendu ENTREPRISE.");
-        }
         if (dto.marque() == null || dto.marque().isBlank()){
             throw new BadRequestException("La marque est obligatoire.");
         }

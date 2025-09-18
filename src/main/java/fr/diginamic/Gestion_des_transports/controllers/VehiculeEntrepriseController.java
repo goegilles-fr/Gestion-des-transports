@@ -23,29 +23,24 @@ import java.util.Optional;
 public class VehiculeEntrepriseController {
 
     private final VehiculeEntrepriseService service;
-    private final UtilisateurService utilisateurService;
 
-    public VehiculeEntrepriseController(VehiculeEntrepriseService service, UtilisateurService utilisateurService) {
+    public VehiculeEntrepriseController(VehiculeEntrepriseService service) {
         this.service = service;
-        this.utilisateurService = utilisateurService;
     }
 
     @GetMapping
-    public ResponseEntity<List<VehiculeDTO>> getAll(@AuthenticationPrincipal UserDetails userDetails) {
-        adminCheck(userDetails);
+    public ResponseEntity<List<VehiculeDTO>> getAll() {
         return ResponseEntity.ok(service.findAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<VehiculeDTO> getById(@AuthenticationPrincipal UserDetails userDetails, @PathVariable Long id) {
-        adminCheck(userDetails);
+    public ResponseEntity<VehiculeDTO> getById(@PathVariable Long id) {
         return ResponseEntity.ok(service.findById(id));
     }
 
     @PostMapping
-    public ResponseEntity<VehiculeDTO> create(@AuthenticationPrincipal UserDetails userDetails, @Valid @RequestBody VehiculeDTO dto,
+    public ResponseEntity<VehiculeDTO> create(@Valid @RequestBody VehiculeDTO dto,
                                                         UriComponentsBuilder uriBuilder) {
-        adminCheck(userDetails);
         VehiculeDTO created = service.create(dto);
         URI location = uriBuilder.path("/vehicules-entreprise/{id}")
                 .buildAndExpand(created.id()).toUri();
@@ -55,34 +50,18 @@ public class VehiculeEntrepriseController {
     @PutMapping("/{id}")
     public ResponseEntity<VehiculeDTO> update(@AuthenticationPrincipal UserDetails userDetails, @PathVariable Long id,
                                                         @Valid @RequestBody VehiculeDTO dto) {
-        adminCheck(userDetails);
         return ResponseEntity.ok(service.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@AuthenticationPrincipal UserDetails userDetails, @PathVariable Long id) {
-        adminCheck(userDetails);
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
 
     // Ex: /vehicules-entreprise/statut/EN_SERVICE
     @GetMapping("/statut/{statut}")
-    public ResponseEntity<List<VehiculeDTO>> getByStatut(@AuthenticationPrincipal UserDetails userDetails, @PathVariable String statut) {
-        adminCheck(userDetails);
+    public ResponseEntity<List<VehiculeDTO>> getByStatut(@PathVariable String statut) {
         return ResponseEntity.ok(service.findByStatut(statut));
-    }
-
-    private void adminCheck(UserDetails userDetails) {
-        String email = userDetails.getUsername();
-        Utilisateur user = Optional.ofNullable(utilisateurService.obtenirUtilisateurParEmail(email))
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
-        System.out.println(user.getRole());
-        if (user == null || !user.getEstVerifie() || user.getEstBanni()) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Compte non vérifié ou banni");
-        }
-        else if (user.getRole() != RoleEnum.ROLE_ADMIN){
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Compte non admin");
-        }
     }
 }
