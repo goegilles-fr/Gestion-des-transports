@@ -104,6 +104,7 @@
             <groupId>com.mailjet</groupId>
             <artifactId>mailjet-client</artifactId>
             <version>6.0.0</version>
+         </dependency>
 
         <!-- https://mvnrepository.com/artifact/javax.validation/validation-api -->
         <dependency>
