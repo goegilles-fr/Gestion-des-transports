@@ -4,12 +4,12 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "vehicule-entreprise-reservations")
+@Table(name = "vehicule_entreprise_reservations")
 public class ReservationVehicule {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
 
     @ManyToOne
     @JoinColumn(name = "utilisateur_id")
@@ -38,11 +38,11 @@ public class ReservationVehicule {
     }
 
     // Getters and Setters
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

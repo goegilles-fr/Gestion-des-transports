@@ -1,7 +1,6 @@
 package fr.diginamic.Gestion_des_transports;
 
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
@@ -9,13 +8,13 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  */
 @SpringBootApplication
 
-public class DemoSecurityApplication {
+public class GestionDesTransportsApplication {
 
 	/** Méthode exécutable
 	 * @param args non utilisé ici
 	 */
 	public static void main(String[] args) {
-		SpringApplication.run(DemoSecurityApplication.class, args);
+		SpringApplication.run(GestionDesTransportsApplication.class, args);
 	}
 
 }
