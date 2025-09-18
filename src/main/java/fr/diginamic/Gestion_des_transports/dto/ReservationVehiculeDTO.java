@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 public record ReservationVehiculeDTO(
         Long id,
 
-        @NotNull
         Long utilisateurId,
 
         @NotNull
