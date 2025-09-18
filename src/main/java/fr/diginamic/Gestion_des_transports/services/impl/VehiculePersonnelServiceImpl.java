@@ -1,7 +1,6 @@
 package fr.diginamic.Gestion_des_transports.services.impl;
 
 import fr.diginamic.Gestion_des_transports.dto.VehiculeDTO;
-import fr.diginamic.Gestion_des_transports.entites.Utilisateur;
 import fr.diginamic.Gestion_des_transports.mapper.VehiculeMapper;
 import fr.diginamic.Gestion_des_transports.entites.VehiculePersonnel;
 import fr.diginamic.Gestion_des_transports.repositories.UtilisateurRepository;
@@ -17,7 +16,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.sql.SQLOutput;
 import java.util.List;
 
 @Service
@@ -51,9 +49,6 @@ public class VehiculePersonnelServiceImpl implements VehiculePersonnelService {
 
     @Override
     public VehiculeDTO create(Long utilisateurId, VehiculeDTO dto) {
-        if (dto.type() == null || dto.type() != VehiculeDTO.VehiculeType.PERSONNEL) {
-            throw new BadRequestException("Type de véhicule invalide: attendu PERSONNEL.");
-        }
         if (dto.marque() == null || dto.marque().isBlank()){
             throw new BadRequestException("La marque est obligatoire.");
         }
