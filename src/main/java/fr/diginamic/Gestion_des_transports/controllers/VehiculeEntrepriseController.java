@@ -1,17 +1,25 @@
 package fr.diginamic.Gestion_des_transports.controllers;
 
 import fr.diginamic.Gestion_des_transports.dto.VehiculeDTO;
+import fr.diginamic.Gestion_des_transports.entites.Utilisateur;
+import fr.diginamic.Gestion_des_transports.enums.RoleEnum;
+import fr.diginamic.Gestion_des_transports.services.UtilisateurService;
 import fr.diginamic.Gestion_des_transports.services.VehiculeEntrepriseService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
-@RequestMapping("/vehicules-entreprise")
+@RequestMapping("/api/vehicules-entreprise")
 public class VehiculeEntrepriseController {
 
     private final VehiculeEntrepriseService service;
@@ -40,7 +48,7 @@ public class VehiculeEntrepriseController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<VehiculeDTO> update(@PathVariable Long id,
+    public ResponseEntity<VehiculeDTO> update(@AuthenticationPrincipal UserDetails userDetails, @PathVariable Long id,
                                                         @Valid @RequestBody VehiculeDTO dto) {
         return ResponseEntity.ok(service.update(id, dto));
     }

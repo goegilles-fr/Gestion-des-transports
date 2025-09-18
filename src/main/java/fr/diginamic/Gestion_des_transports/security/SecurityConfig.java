@@ -3,6 +3,7 @@ package fr.diginamic.Gestion_des_transports.security;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -34,6 +35,18 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource)) // Add CORS configuration
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/auth/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()
+                        .requestMatchers(HttpMethod.POST,   "/api/vehicules-entreprise").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT,    "/api/vehicules-entreprise/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/vehicules-entreprise/**").hasRole("ADMIN")
+
+
+                        .requestMatchers(HttpMethod.PUT,    "/api/utilisateurs/*/verifier").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT,    "/api/utilisateurs/*/bannir").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET,    "/api/utilisateurs/non-verifies").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET,    "/api/utilisateurs/by-role").hasRole("ADMIN")
+
+
+
                         .anyRequest().authenticated()
                 );
 

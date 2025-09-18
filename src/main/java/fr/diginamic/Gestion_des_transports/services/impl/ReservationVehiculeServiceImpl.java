@@ -1,10 +1,12 @@
 package fr.diginamic.Gestion_des_transports.services.impl;
 
 import fr.diginamic.Gestion_des_transports.dto.ReservationVehiculeDTO;
+import fr.diginamic.Gestion_des_transports.entites.Utilisateur;
+import fr.diginamic.Gestion_des_transports.entites.VehiculeEntreprise;
+import fr.diginamic.Gestion_des_transports.enums.StatutVehicule;
 import fr.diginamic.Gestion_des_transports.mapper.ReservationVehiculeMapper;
 import fr.diginamic.Gestion_des_transports.entites.ReservationVehicule;
 import fr.diginamic.Gestion_des_transports.repositories.ReservationVehiculeRepository;
-import fr.diginamic.Gestion_des_transports.repositories.UtilisateurRepository;
 import fr.diginamic.Gestion_des_transports.repositories.VehiculeEntrepriseRepository;
 import fr.diginamic.Gestion_des_transports.services.ReservationVehiculeService;
 import fr.diginamic.Gestion_des_transports.shared.BadRequestException;
@@ -20,16 +22,13 @@ import java.util.List;
 public class ReservationVehiculeServiceImpl implements ReservationVehiculeService {
 
     private final ReservationVehiculeRepository repo;
-    private final UtilisateurRepository utilisateurRepo;
     private final VehiculeEntrepriseRepository vehiculeEntrepriseRepo;
     private final ReservationVehiculeMapper reservationMapper;
 
     public ReservationVehiculeServiceImpl(ReservationVehiculeRepository repo,
-                                          UtilisateurRepository utilisateurRepo,
                                           VehiculeEntrepriseRepository vehiculeEntrepriseRepo,
                                           ReservationVehiculeMapper reservationMapper) {
         this.repo = repo;
-        this.utilisateurRepo = utilisateurRepo;
         this.vehiculeEntrepriseRepo = vehiculeEntrepriseRepo;
         this.reservationMapper = reservationMapper;
     }
@@ -40,29 +39,28 @@ public class ReservationVehiculeServiceImpl implements ReservationVehiculeServic
     }
 
     @Override
-    public ReservationVehiculeDTO findById(Long id) {
-        ReservationVehicule r = repo.findById(id)
+    public ReservationVehiculeDTO findById(Utilisateur user, Long id) {
+        ReservationVehicule entity = repo.findById(id)
                 .orElseThrow(() -> new NotFoundException("Réservation introuvable: " + id));
-        return reservationMapper.toDto(r);
+        if (!entity.getUtilisateur().getId().equals(user.getId())) {
+            throw new BadRequestException("L'utilisateur ne correspond pas.");
+        }
+        return reservationMapper.toDto(entity);
     }
 
     @Override
-    public ReservationVehiculeDTO create(ReservationVehiculeDTO dto) {
-        if (dto.utilisateurId() == null) {
-            throw new BadRequestException("L'utilisateurId est obligatoire.");
-        }
+    public ReservationVehiculeDTO create(Utilisateur user, ReservationVehiculeDTO dto) {
         if (dto.vehiculeId() == null) {
             throw new BadRequestException("Le vehiculeId est obligatoire.");
         }
         if (dto.dateDebut() == null || dto.dateFin() == null) {
             throw new BadRequestException("La dateDebut et la dateFin sont obligatoires.");
         }
-        validateDates(dto.dateDebut(), dto.dateFin());
+        validateReservation(dto.vehiculeId(), dto.dateDebut(), dto.dateFin());
 
         ReservationVehicule entity = reservationMapper.toEntity(dto);
 
-        // Lier les associations via références JPA (évite un SELECT)
-        entity.setUtilisateur(utilisateurRepo.getReferenceById(dto.utilisateurId()));
+        entity.setUtilisateur(user);
         entity.setVehiculeEntreprise(vehiculeEntrepriseRepo.getReferenceById(dto.vehiculeId()));
 
         ReservationVehicule saved = repo.save(entity);
@@ -70,37 +68,41 @@ public class ReservationVehiculeServiceImpl implements ReservationVehiculeServic
     }
 
     @Override
-    public ReservationVehiculeDTO update(Long id, ReservationVehiculeDTO dto) {
+    public ReservationVehiculeDTO update(Utilisateur user, Long id, ReservationVehiculeDTO dto) {
         ReservationVehicule entity = repo.findById(id)
                 .orElseThrow(() -> new NotFoundException("Réservation introuvable: " + id));
+        if (!entity.getUtilisateur().getId().equals(user.getId())) {
+            throw new BadRequestException("L'utilisateur ne correspond pas.");
+        }
 
         // On calcule les nouvelles valeurs effectives (permet l’update partiel)
         LocalDateTime newDebut = dto.dateDebut() != null ? dto.dateDebut() : entity.getDateDebut();
         LocalDateTime newFin   = dto.dateFin()   != null ? dto.dateFin()   : entity.getDateFin();
 
         // Validations temporelles sur le résultat effectif
-        validateDates(newDebut, newFin);
+        validateReservation(dto.vehiculeId(), newDebut, newFin);
 
         // Mise à jour des champs
         entity.setDateDebut(dto.dateDebut());
         entity.setDateFin(dto.dateFin());
-        entity.setUtilisateur(utilisateurRepo.getReferenceById(dto.utilisateurId()));
         entity.setVehiculeEntreprise(vehiculeEntrepriseRepo.getReferenceById(dto.vehiculeId()));
 
         return reservationMapper.toDto(entity);
     }
 
     @Override
-    public void delete(Long id) {
-        if (!repo.existsById(id)) {
-            throw new NotFoundException("Réservation introuvable: " + id);
+    public void delete(Utilisateur user, Long id) {
+        ReservationVehicule entity = repo.findById(id)
+                .orElseThrow(() -> new NotFoundException("Réservation introuvable: " + id));
+        if (!entity.getUtilisateur().getId().equals(user.getId())) {
+            throw new BadRequestException("L'utilisateur ne correspond pas.");
         }
         repo.deleteById(id);
     }
 
     @Override
-    public List<ReservationVehiculeDTO> findByUtilisateurId(Long utilisateurId) {
-        return reservationMapper.toDtoList(repo.findByUtilisateurId(Math.toIntExact(utilisateurId)));
+    public List<ReservationVehiculeDTO> findByUtilisateurId(Utilisateur user) {
+        return reservationMapper.toDtoList(repo.findByUtilisateurId(Math.toIntExact(user.getId())));
     }
 
     @Override
@@ -108,7 +110,7 @@ public class ReservationVehiculeServiceImpl implements ReservationVehiculeServic
         return reservationMapper.toDtoList(repo.findByVehiculeEntrepriseId(Math.toIntExact(vehiculeId)));
     }
 
-    private void validateDates(LocalDateTime debut, LocalDateTime fin) {
+    private void validateReservation(Long vehiculeId, LocalDateTime debut, LocalDateTime fin) {
         LocalDateTime now = LocalDateTime.now(); // horloge système
         if (!debut.isAfter(now)) {
             throw new BadRequestException("dateDebut doit être strictement postérieure à la date actuelle.");
@@ -118,6 +120,18 @@ public class ReservationVehiculeServiceImpl implements ReservationVehiculeServic
         }
         if (!debut.isBefore(fin)) {
             throw new BadRequestException("dateDebut doit être strictement antérieure à dateFin.");
+        }
+
+        // Verification que le vehicule est disponible pour ces dates
+        List<ReservationVehicule> reservationVehicules = repo.findByVehiculeEntrepriseId(Math.toIntExact(vehiculeId));
+        reservationVehicules.forEach(reservation -> {
+           if((debut.isAfter(reservation.getDateDebut()) && debut.isBefore(reservation.getDateFin())) || (fin.isAfter(reservation.getDateDebut()) && fin.isBefore(reservation.getDateFin()))) {
+               throw new BadRequestException("Le vehicule n'est pas disponible pour ces dates");
+           }
+        });
+        VehiculeEntreprise vehicule = vehiculeEntrepriseRepo.getReferenceById(vehiculeId);
+        if (vehicule.getStatut() != StatutVehicule.EN_SERVICE) {
+            throw new BadRequestException("Le vehicule n'est pas en service.");
         }
     }
 }
