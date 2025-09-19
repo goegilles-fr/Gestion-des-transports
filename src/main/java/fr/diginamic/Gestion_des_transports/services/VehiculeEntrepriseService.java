@@ -10,4 +10,5 @@ public interface VehiculeEntrepriseService {
     VehiculeDTO update(Long id, VehiculeDTO dto);
     void delete(Long id);
     List<VehiculeDTO> findByStatut(String statut);
+    List<VehiculeDTO> findByDisponible(String dateDebut, String dateFin);
 }

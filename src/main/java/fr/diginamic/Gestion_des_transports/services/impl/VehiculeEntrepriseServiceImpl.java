@@ -5,6 +5,7 @@ import fr.diginamic.Gestion_des_transports.entites.VehiculePersonnel;
 import fr.diginamic.Gestion_des_transports.enums.StatutVehicule;
 import fr.diginamic.Gestion_des_transports.mapper.VehiculeMapper;
 import fr.diginamic.Gestion_des_transports.entites.VehiculeEntreprise;
+import fr.diginamic.Gestion_des_transports.repositories.ReservationVehiculeRepository;
 import fr.diginamic.Gestion_des_transports.repositories.VehiculeEntrepriseRepository;
 import fr.diginamic.Gestion_des_transports.services.VehiculeEntrepriseService;
 import fr.diginamic.Gestion_des_transports.shared.BadRequestException;
@@ -13,6 +14,8 @@ import fr.diginamic.Gestion_des_transports.shared.NotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.time.DateTimeException;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -20,11 +23,13 @@ import java.util.List;
 public class VehiculeEntrepriseServiceImpl implements VehiculeEntrepriseService {
 
     private final VehiculeEntrepriseRepository repo;
+    private final ReservationVehiculeRepository reservationRepo;
     private final VehiculeMapper vehiculeMapper;
 
-    public VehiculeEntrepriseServiceImpl(VehiculeEntrepriseRepository repo,
+    public VehiculeEntrepriseServiceImpl(VehiculeEntrepriseRepository repo, ReservationVehiculeRepository reservationRepo,
                                          VehiculeMapper vehiculeMapper) {
         this.repo = repo;
+        this.reservationRepo = reservationRepo;
         this.vehiculeMapper = vehiculeMapper;
     }
 
@@ -116,5 +121,23 @@ public class VehiculeEntrepriseServiceImpl implements VehiculeEntrepriseService 
     @Override
     public List<VehiculeDTO> findByStatut(String statut) {
         return vehiculeMapper.toDtoEntrepriseList(repo.findByStatut(StatutVehicule.valueOf(statut)));
+    }
+
+    @Override
+    public List<VehiculeDTO> findByDisponible(String dateDebut, String dateFin) {
+        final LocalDateTime debut;
+        final LocalDateTime fin;
+        try {
+            debut = LocalDateTime.parse(dateDebut);
+            fin = LocalDateTime.parse(dateFin);
+        } catch (DateTimeException e) {
+            throw new BadRequestException("Date debut ou de fin invalide. Verifier les formats (AAAA/MM/JJTHH:MM:SS).");
+        }
+
+        if(debut.isAfter(fin)) {
+            throw new BadRequestException("La date fin doit etre strictement apres la date de debut.");
+        }
+
+        return vehiculeMapper.toDtoEntrepriseList(repo.findAllAvailableBetween(debut, fin));
     }
 }

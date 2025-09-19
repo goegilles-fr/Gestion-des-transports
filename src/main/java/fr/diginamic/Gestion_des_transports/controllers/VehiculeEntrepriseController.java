@@ -64,4 +64,9 @@ public class VehiculeEntrepriseController {
     public ResponseEntity<List<VehiculeDTO>> getByStatut(@PathVariable String statut) {
         return ResponseEntity.ok(service.findByStatut(statut));
     }
+
+    @GetMapping("/disponible")
+    public ResponseEntity<List<VehiculeDTO>> getByDisponible(@RequestParam String dateDebut, @RequestParam String dateFin) {
+        return ResponseEntity.ok(service.findByDisponible(dateDebut, dateFin));
+    }
 }
