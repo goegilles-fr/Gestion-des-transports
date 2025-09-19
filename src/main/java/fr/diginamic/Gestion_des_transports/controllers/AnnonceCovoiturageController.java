@@ -218,7 +218,7 @@ public class AnnonceCovoiturageController {
      */
     @GetMapping("/")
     @Operation(
-            summary = "Récupérer toutes les annonces de covoiturage")
+            summary = "Récupérer toutes les annonces de covoiturage. L'affichage indique également le nombre total de places et leur occupation.")
 
 
     public ResponseEntity<List<AnnonceCovoiturageAvecPlacesDto>> obtenirToutesLesAnnonces() {

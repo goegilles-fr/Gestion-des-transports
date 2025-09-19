@@ -9,6 +9,7 @@ import fr.diginamic.Gestion_des_transports.entites.ReservationVehicule;
 import fr.diginamic.Gestion_des_transports.repositories.ReservationVehiculeRepository;
 import fr.diginamic.Gestion_des_transports.repositories.VehiculeEntrepriseRepository;
 import fr.diginamic.Gestion_des_transports.services.ReservationVehiculeService;
+import fr.diginamic.Gestion_des_transports.services.VehiculeEntrepriseService;
 import fr.diginamic.Gestion_des_transports.shared.BadRequestException;
 import fr.diginamic.Gestion_des_transports.shared.NotFoundException;
 import jakarta.transaction.Transactional;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -56,8 +58,8 @@ public class ReservationVehiculeServiceImpl implements ReservationVehiculeServic
         if (dto.dateDebut() == null || dto.dateFin() == null) {
             throw new BadRequestException("La dateDebut et la dateFin sont obligatoires.");
         }
-        validateReservation(dto.vehiculeId(), dto.dateDebut(), dto.dateFin());
-
+        validateReservation(dto.vehiculeId(), dto.dateDebut(), dto.dateFin(), null);
+        validateUser(dto.dateDebut(), dto.dateFin(), user.getId(), null);
         ReservationVehicule entity = reservationMapper.toEntity(dto);
 
         entity.setUtilisateur(user);
@@ -75,20 +77,30 @@ public class ReservationVehiculeServiceImpl implements ReservationVehiculeServic
             throw new BadRequestException("L'utilisateur ne correspond pas.");
         }
 
-        // On calcule les nouvelles valeurs effectives (permet l’update partiel)
+        // On calcule les nouvelles valeurs effectives (permet l'update partiel)
         LocalDateTime newDebut = dto.dateDebut() != null ? dto.dateDebut() : entity.getDateDebut();
-        LocalDateTime newFin   = dto.dateFin()   != null ? dto.dateFin()   : entity.getDateFin();
+        LocalDateTime newFin = dto.dateFin() != null ? dto.dateFin() : entity.getDateFin();
+        Long newVehiculeId = dto.vehiculeId() != null ? dto.vehiculeId() : entity.getVehiculeEntreprise().getId();
 
         // Validations temporelles sur le résultat effectif
-        validateReservation(dto.vehiculeId(), newDebut, newFin);
-
-        // Mise à jour des champs
-        entity.setDateDebut(dto.dateDebut());
-        entity.setDateFin(dto.dateFin());
-        entity.setVehiculeEntreprise(vehiculeEntrepriseRepo.getReferenceById(dto.vehiculeId()));
+        validateReservation(newVehiculeId, newDebut, newFin, id);
+        validateUser(newDebut, newFin, user.getId(), id);
+        // Mise à jour des champs SEULEMENT si fournis
+        if (dto.dateDebut() != null) {
+            entity.setDateDebut(dto.dateDebut());
+        }
+        if (dto.dateFin() != null) {
+            entity.setDateFin(dto.dateFin());
+        }
+        if (dto.vehiculeId() != null) {
+            entity.setVehiculeEntreprise(vehiculeEntrepriseRepo.getReferenceById(dto.vehiculeId()));
+        }
 
         return reservationMapper.toDto(entity);
     }
+
+
+
 
     @Override
     public void delete(Utilisateur user, Long id) {
@@ -102,15 +114,15 @@ public class ReservationVehiculeServiceImpl implements ReservationVehiculeServic
 
     @Override
     public List<ReservationVehiculeDTO> findByUtilisateurId(Utilisateur user) {
-        return reservationMapper.toDtoList(repo.findByUtilisateurId(Math.toIntExact(user.getId())));
+        return reservationMapper.toDtoList(repo.findByUtilisateurId(user.getId()));
     }
 
     @Override
     public List<ReservationVehiculeDTO> findByVehiculeId(Long vehiculeId) {
-        return reservationMapper.toDtoList(repo.findByVehiculeEntrepriseId(Math.toIntExact(vehiculeId)));
+        return reservationMapper.toDtoList(repo.findByVehiculeEntrepriseId(vehiculeId));
     }
 
-    private void validateReservation(Long vehiculeId, LocalDateTime debut, LocalDateTime fin) {
+    private void validateReservation(Long vehiculeId, LocalDateTime debut, LocalDateTime fin, Long reservationIdAExclure) {
         LocalDateTime now = LocalDateTime.now(); // horloge système
         if (!debut.isAfter(now)) {
             throw new BadRequestException("dateDebut doit être strictement postérieure à la date actuelle.");
@@ -122,16 +134,55 @@ public class ReservationVehiculeServiceImpl implements ReservationVehiculeServic
             throw new BadRequestException("dateDebut doit être strictement antérieure à dateFin.");
         }
 
-        // Verification que le vehicule est disponible pour ces dates
-        List<ReservationVehicule> reservationVehicules = repo.findByVehiculeEntrepriseId(Math.toIntExact(vehiculeId));
-        reservationVehicules.forEach(reservation -> {
-           if((debut.isAfter(reservation.getDateDebut()) && debut.isBefore(reservation.getDateFin())) || (fin.isAfter(reservation.getDateDebut()) && fin.isBefore(reservation.getDateFin()))) {
-               throw new BadRequestException("Le vehicule n'est pas disponible pour ces dates");
-           }
-        });
-        VehiculeEntreprise vehicule = vehiculeEntrepriseRepo.getReferenceById(vehiculeId);
+        VehiculeEntreprise vehicule = vehiculeEntrepriseRepo.findById(vehiculeId)
+                .orElseThrow(() -> new NotFoundException("Véhicule introuvable: " + vehiculeId));
+
         if (vehicule.getStatut() != StatutVehicule.EN_SERVICE) {
-            throw new BadRequestException("Le vehicule n'est pas en service.");
+            throw new BadRequestException("Le véhicule n'est pas en service. Statut actuel: " + vehicule.getStatut());
+        }
+
+
+        List<ReservationVehicule> reservationsExistantes = repo.findByVehiculeEntrepriseId(vehiculeId);
+        // Verification que le vehicule est disponible pour ces dates
+        for (ReservationVehicule reservationExistante : reservationsExistantes) {
+            LocalDateTime debutExistant = reservationExistante.getDateDebut();
+            LocalDateTime finExistante = reservationExistante.getDateFin();
+
+            if (reservationExistante.getId().equals(reservationIdAExclure)) {
+                continue;
+            }
+
+            // Vérification de chevauchement : deux périodes se chevauchent si :
+            // - la nouvelle période commence avant la fin de l'existante ET
+            // - la nouvelle période finit après le début de l'existante
+            if (debut.isBefore(finExistante) && fin.isAfter(debutExistant)) {
+                throw new BadRequestException("Le véhicule n'est pas disponible pour ces dates. " +
+                        "Conflit avec une réservation existante du " + debutExistant + " au " + finExistante);
+            }
         }
     }
+
+    private void validateUser(LocalDateTime debut, LocalDateTime fin, Long userId, Long reservationIdAExclure) {
+        // Vérification que l'utilisateur n'a pas d'autre réservation en même temps
+        List<ReservationVehicule> reservationsUtilisateur = repo.findByUtilisateurId(userId);
+        for (ReservationVehicule reservationUtilisateur : reservationsUtilisateur) {
+            // Exclure la réservation courante si c'est une mise à jour
+            if (reservationIdAExclure != null && reservationUtilisateur.getId().equals(reservationIdAExclure)) {
+                continue;
+            }
+
+            LocalDateTime debutUtilisateur = reservationUtilisateur.getDateDebut();
+            LocalDateTime finUtilisateur = reservationUtilisateur.getDateFin();
+
+            // Vérification de chevauchement avec les autres réservations de l'utilisateur
+            if (debut.isBefore(finUtilisateur) && fin.isAfter(debutUtilisateur)) {
+                throw new BadRequestException("Vous avez déjà une réservation de véhicule pour cette période. " +
+                        "Conflit avec votre réservation du " + debutUtilisateur + " au " + finUtilisateur);
+            }
+        }
+    }
+
+
+
+
 }

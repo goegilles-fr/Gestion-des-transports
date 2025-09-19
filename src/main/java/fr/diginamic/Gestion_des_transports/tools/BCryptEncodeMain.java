@@ -13,9 +13,7 @@ public class BCryptEncodeMain {
 
 	public static void main(String[] args) {
 		BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-		System.out.println(encoder.encode("a"));
-        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+
 
 	}
 

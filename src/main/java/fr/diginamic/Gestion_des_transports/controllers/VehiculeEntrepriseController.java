@@ -5,7 +5,9 @@ import fr.diginamic.Gestion_des_transports.entites.Utilisateur;
 import fr.diginamic.Gestion_des_transports.enums.RoleEnum;
 import fr.diginamic.Gestion_des_transports.services.UtilisateurService;
 import fr.diginamic.Gestion_des_transports.services.VehiculeEntrepriseService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -15,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,6 +36,28 @@ public class VehiculeEntrepriseController {
         return ResponseEntity.ok(service.findAll());
     }
 
+    /**
+     * @param dateDebut
+     * @param dateFin
+     * @return
+     * Example
+     *      /api/vehicules-entreprise/dispo?dateDebut=2025-09-23T17:00:00&dateFin=2025-09-24T18:00:00
+     */
+    @GetMapping("/dispo")
+    @Operation(summary = "Obtenir les véhicules d'entreprise disponibles pour une période donnée")
+    public ResponseEntity<List<VehiculeDTO>> getVehiculesEntrepriseDisponibles(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            LocalDateTime dateDebut,
+
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            LocalDateTime dateFin) {
+
+        List<VehiculeDTO> vehiculesDisponibles = service.findByAvailability(dateDebut, dateFin);
+
+        return ResponseEntity.ok(vehiculesDisponibles);
+    }
+
+
     @GetMapping("/{id}")
     public ResponseEntity<VehiculeDTO> getById(@PathVariable Long id) {
         return ResponseEntity.ok(service.findById(id));
@@ -40,7 +65,7 @@ public class VehiculeEntrepriseController {
 
     @PostMapping
     public ResponseEntity<VehiculeDTO> create(@Valid @RequestBody VehiculeDTO dto,
-                                                        UriComponentsBuilder uriBuilder) {
+                                              UriComponentsBuilder uriBuilder) {
         VehiculeDTO created = service.create(dto);
         URI location = uriBuilder.path("/vehicules-entreprise/{id}")
                 .buildAndExpand(created.id()).toUri();
@@ -49,7 +74,7 @@ public class VehiculeEntrepriseController {
 
     @PutMapping("/{id}")
     public ResponseEntity<VehiculeDTO> update(@AuthenticationPrincipal UserDetails userDetails, @PathVariable Long id,
-                                                        @Valid @RequestBody VehiculeDTO dto) {
+                                              @Valid @RequestBody VehiculeDTO dto) {
         return ResponseEntity.ok(service.update(id, dto));
     }
 
