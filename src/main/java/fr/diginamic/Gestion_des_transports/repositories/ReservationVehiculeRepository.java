@@ -8,10 +8,10 @@ import java.util.List;
 
 public interface ReservationVehiculeRepository extends JpaRepository<ReservationVehicule, Long> {
 
-    List<ReservationVehicule> findByUtilisateurId(int utilisateurId);
+    List<ReservationVehicule> findByUtilisateurId(Long utilisateurId);
 
     // Variante par ID (celle qu'on utilise côté service)
-    List<ReservationVehicule> findByVehiculeEntrepriseId(int vehiculeEntrepriseId);
+    List<ReservationVehicule> findByVehiculeEntrepriseId(Long vehiculeEntrepriseId);
 
     // Variante par entité (utile si tu as déjà l'entité en main)
     List<ReservationVehicule> findByVehiculeEntreprise(VehiculeEntreprise vehiculeEntreprise);

@@ -1,6 +1,7 @@
 package fr.diginamic.Gestion_des_transports.services.impl;
 
 import fr.diginamic.Gestion_des_transports.dto.VehiculeDTO;
+import fr.diginamic.Gestion_des_transports.entites.ReservationVehicule;
 import fr.diginamic.Gestion_des_transports.entites.VehiculePersonnel;
 import fr.diginamic.Gestion_des_transports.enums.StatutVehicule;
 import fr.diginamic.Gestion_des_transports.mapper.VehiculeMapper;
@@ -14,8 +15,8 @@ import fr.diginamic.Gestion_des_transports.shared.NotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
-import java.time.DateTimeException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -23,19 +24,78 @@ import java.util.List;
 public class VehiculeEntrepriseServiceImpl implements VehiculeEntrepriseService {
 
     private final VehiculeEntrepriseRepository repo;
-    private final ReservationVehiculeRepository reservationRepo;
+    private final ReservationVehiculeRepository repoReservations;
     private final VehiculeMapper vehiculeMapper;
 
-    public VehiculeEntrepriseServiceImpl(VehiculeEntrepriseRepository repo, ReservationVehiculeRepository reservationRepo,
+    public VehiculeEntrepriseServiceImpl(VehiculeEntrepriseRepository repo,
+                                         ReservationVehiculeRepository repoReservations,
                                          VehiculeMapper vehiculeMapper) {
         this.repo = repo;
-        this.reservationRepo = reservationRepo;
         this.vehiculeMapper = vehiculeMapper;
+        this.repoReservations = repoReservations;
+
     }
 
     @Override
     public List<VehiculeDTO> findAll() {
         return vehiculeMapper.toDtoEntrepriseList(repo.findAll());
+    }
+
+    public List<VehiculeDTO> findByAvailability(LocalDateTime dateDebut, LocalDateTime dateFin) {
+        // Check if dateFin is after dateDebut
+        if (dateFin.isBefore(dateDebut) || dateFin.isEqual(dateDebut)) {
+            throw new BadRequestException("DATES INCORRECTES : La date de début doit être antérieure à la date de fin");
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        if (dateDebut.isBefore(now)) {
+            throw new BadRequestException("DATES INCORRECTES : La date de début doit être dans le futur");
+        }
+        if (dateFin.isBefore(now)) {
+            throw new BadRequestException("DATES INCORRECTES : La date de fin doit être dans le futur");
+        }
+        // Get all vehicles with status EN_SERVICE
+        List<VehiculeEntreprise> vehiculesEnService = repo.findByStatut(StatutVehicule.EN_SERVICE);
+
+        if (vehiculesEnService.isEmpty()) {
+            throw new NotFoundException("Il n'y a pas de voitures en service");
+        }
+        List<VehiculeEntreprise> vehiculesDisponibles = new ArrayList<>();
+
+        // Loop through all company cars
+        for (VehiculeEntreprise vehicule : vehiculesEnService) {
+            List<ReservationVehicule> reservations = repoReservations.findByVehiculeEntrepriseId(vehicule.getId());
+            System.out.println("Vehicle ID " + vehicule.getId() + " has " + reservations.size() + " reservations");
+
+            for (ReservationVehicule res : reservations) {
+                System.out.println("  Reservation: " + res.getDateDebut() + " to " + res.getDateFin());
+            }
+
+            boolean isAvailable = true;
+
+            // Check if the selected period intersects with any existing reservations
+            for (ReservationVehicule reservation : reservations) {
+                if ((dateDebut.isAfter(reservation.getDateDebut()) && dateDebut.isBefore(reservation.getDateFin())) ||
+                        (dateFin.isAfter(reservation.getDateDebut()) && dateFin.isBefore(reservation.getDateFin())) ||
+                        (dateDebut.isBefore(reservation.getDateDebut()) && dateFin.isAfter(reservation.getDateFin())) ||
+                        (reservation.getDateDebut().isBefore(dateDebut) && reservation.getDateFin().isAfter(dateFin))) {
+                    isAvailable = false;
+                    break;
+                }
+            }
+
+            // If no conflicts found, add the vehicle to available list
+            if (isAvailable) {
+                vehiculesDisponibles.add(vehicule);
+            }
+        }
+
+        if (vehiculesDisponibles.isEmpty()) {
+            throw new  NotFoundException("Aucune voiture disponible pour les dates sélectionnées");
+        }
+
+
+        return vehiculeMapper.toDtoEntrepriseList(vehiculesDisponibles);
     }
 
     @Override
@@ -121,23 +181,5 @@ public class VehiculeEntrepriseServiceImpl implements VehiculeEntrepriseService 
     @Override
     public List<VehiculeDTO> findByStatut(String statut) {
         return vehiculeMapper.toDtoEntrepriseList(repo.findByStatut(StatutVehicule.valueOf(statut)));
-    }
-
-    @Override
-    public List<VehiculeDTO> findByDisponible(String dateDebut, String dateFin) {
-        final LocalDateTime debut;
-        final LocalDateTime fin;
-        try {
-            debut = LocalDateTime.parse(dateDebut);
-            fin = LocalDateTime.parse(dateFin);
-        } catch (DateTimeException e) {
-            throw new BadRequestException("Date debut ou de fin invalide. Verifier les formats (AAAA/MM/JJTHH:MM:SS).");
-        }
-
-        if(debut.isAfter(fin)) {
-            throw new BadRequestException("La date fin doit etre strictement apres la date de debut.");
-        }
-
-        return vehiculeMapper.toDtoEntrepriseList(repo.findAllAvailableBetween(debut, fin));
     }
 }

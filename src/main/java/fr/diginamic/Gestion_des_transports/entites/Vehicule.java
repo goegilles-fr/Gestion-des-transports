@@ -10,9 +10,9 @@ import jakarta.validation.constraints.NotNull;
 @Entity
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public abstract class Vehicule {
-
     @Id
-    @GeneratedValue(strategy = GenerationType.TABLE)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "vehicule_seq")
+    @SequenceGenerator(name = "vehicule_seq", sequenceName = "vehicule_sequence", allocationSize = 1)
     private Long id;
 
     @NotBlank
