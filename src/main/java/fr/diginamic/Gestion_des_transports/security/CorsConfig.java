@@ -19,7 +19,8 @@ public class CorsConfig {
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:4200",  // Angular dev server
                 "http://localhost:3000",  // Alternative port
-                "https://dev.goegilles.fr" // Your production frontend domain
+                "https://dev.goegilles.fr",
+                "https://covoit.goegilles.fr" 
         ));
 
         // Allow all HTTP methods
