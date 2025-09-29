@@ -80,7 +80,21 @@ public class AnnonceCovoiturageService {
             } else {
                 throw new IllegalArgumentException("Véhicule de service introuvable avec l'ID: " + annonceDto.vehiculeServiceId());
             }
+
+
+
         }
+
+        // Si aucun véhicule de service n'est spécifié, vérifier que l'utilisateur a un véhicule personnel
+        if (annonceDto.vehiculeServiceId() == null) {
+            List<VehiculePersonnel> vehiculesPersonnels = vehiculePersonnelRepository.findByUtilisateur(responsable);
+
+            if (vehiculesPersonnels.isEmpty()) {
+                throw new IllegalArgumentException("Vous devez spécifier un véhicule de service ou posséder un véhicule personnel pour créer une annonce de covoiturage.");
+            }
+        }
+
+
 
         // Sauvegarder l'annonce
         AnnonceCovoiturage annonceSauvegardee = annonceCovoiturageRepository.save(nouvelleAnnonce);
