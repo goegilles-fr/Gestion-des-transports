@@ -36,4 +36,31 @@ public interface AnnonceCovoiturageRepository extends JpaRepository<AnnonceCovoi
 
     @Query("SELECT a FROM AnnonceCovoiturage a WHERE a.responsable.id = :responsableId")
     List<AnnonceCovoiturage> findByResponsableId(@Param("responsableId") Long responsableId);
+
+    /**
+     * Trouve toutes les annonces de covoiturage utilisant un véhicule de service donné
+     * dont la période de trajet chevauche une période spécifiée.
+     *
+     * @param vehiculeServiceId ID du véhicule de service
+     * @param dateDebut Date de début de la période à vérifier
+     * @param dateFin Date de fin de la période à vérifier
+     * @return Liste des annonces en conflit
+     */
+    /**
+     * Trouve toutes les annonces de covoiturage utilisant un véhicule de service donné
+     * qui démarrent dans une période donnée.
+     *
+     * @param vehiculeServiceId ID du véhicule de service
+     * @param dateDebut Date de début de la période à vérifier
+     * @param dateFin Date de fin de la période à vérifier
+     * @return Liste des annonces à vérifier
+     */
+    @Query("SELECT a FROM AnnonceCovoiturage a WHERE a.vehiculeService.id = :vehiculeServiceId " +
+            "AND a.heureDepart < :dateFin " +
+            "AND a.heureDepart >= :dateDebut")
+    List<AnnonceCovoiturage> findByVehiculeServiceIdBetweenDates(
+            @Param("vehiculeServiceId") Long vehiculeServiceId,
+            @Param("dateDebut") LocalDateTime dateDebut,
+            @Param("dateFin") LocalDateTime dateFin
+    );
 }

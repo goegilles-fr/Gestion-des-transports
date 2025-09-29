@@ -41,25 +41,19 @@ public class AnnonceCovoiturageController {
      * @return l'annonce créée avec son ID
      */
     @PostMapping("/create")
-    @Operation(
-            summary = "Créer une annonce. vehiculeServiceId peut être nul")
-    public ResponseEntity<AnnonceCovoiturageDto> creerAnnonce(
+    @Operation(summary = "Créer une annonce. vehiculeServiceId peut être nul")
+    public ResponseEntity<?> creerAnnonce(
             @Valid @RequestBody AnnonceCovoiturageDto annonceDto,
             Authentication authentication) {
 
         try {
-            // Récupérer l'ID de l'utilisateur connecté depuis le JWT
             Long idUtilisateurConnecte = utilisateurService.obtenirUtilisateurParEmail(authentication.getName()).getId();
-
-            // Créer l'annonce
             AnnonceCovoiturageDto annonceCree = annonceCovoiturageService.creerAnnonce(annonceDto, idUtilisateurConnecte);
-
             return ResponseEntity.status(HttpStatus.CREATED).body(annonceCree);
-
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne: " + e.getMessage());
         }
     }
 

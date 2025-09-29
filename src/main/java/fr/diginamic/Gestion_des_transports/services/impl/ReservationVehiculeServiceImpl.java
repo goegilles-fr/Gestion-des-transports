@@ -1,11 +1,13 @@
 package fr.diginamic.Gestion_des_transports.services.impl;
 
 import fr.diginamic.Gestion_des_transports.dto.ReservationVehiculeDTO;
+import fr.diginamic.Gestion_des_transports.entites.AnnonceCovoiturage;
 import fr.diginamic.Gestion_des_transports.entites.Utilisateur;
 import fr.diginamic.Gestion_des_transports.entites.VehiculeEntreprise;
 import fr.diginamic.Gestion_des_transports.enums.StatutVehicule;
 import fr.diginamic.Gestion_des_transports.mapper.ReservationVehiculeMapper;
 import fr.diginamic.Gestion_des_transports.entites.ReservationVehicule;
+import fr.diginamic.Gestion_des_transports.repositories.AnnonceCovoiturageRepository;
 import fr.diginamic.Gestion_des_transports.repositories.ReservationVehiculeRepository;
 import fr.diginamic.Gestion_des_transports.repositories.VehiculeEntrepriseRepository;
 import fr.diginamic.Gestion_des_transports.services.ReservationVehiculeService;
@@ -25,13 +27,16 @@ public class ReservationVehiculeServiceImpl implements ReservationVehiculeServic
 
     private final ReservationVehiculeRepository repo;
     private final VehiculeEntrepriseRepository vehiculeEntrepriseRepo;
+    private final AnnonceCovoiturageRepository annonceCovoiturageRepo;
     private final ReservationVehiculeMapper reservationMapper;
 
     public ReservationVehiculeServiceImpl(ReservationVehiculeRepository repo,
                                           VehiculeEntrepriseRepository vehiculeEntrepriseRepo,
+                                          AnnonceCovoiturageRepository annonceCovoiturageRepo,
                                           ReservationVehiculeMapper reservationMapper) {
         this.repo = repo;
         this.vehiculeEntrepriseRepo = vehiculeEntrepriseRepo;
+        this.annonceCovoiturageRepo = annonceCovoiturageRepo;
         this.reservationMapper = reservationMapper;
     }
 
@@ -100,15 +105,102 @@ public class ReservationVehiculeServiceImpl implements ReservationVehiculeServic
     }
 
 
+    @Override
+    public ReservationVehiculeDTO findByUtilisateurAndPeriode(Utilisateur user, LocalDateTime dateDebut, Integer dureeMinutes) {
+        // Validation des paramètres
+        if (dateDebut == null) {
+            throw new BadRequestException("La dateDebut est obligatoire.");
+        }
+        if (dureeMinutes == null) {
+            throw new BadRequestException("La dureeMinutes est obligatoire.");
+        }
+        if (dureeMinutes <= 0) {
+            throw new BadRequestException("La dureeMinutes doit être strictement positive.");
+        }
+
+        // Calcul de la date de fin recherchée
+        LocalDateTime dateFinRecherche = dateDebut.plusMinutes(dureeMinutes);
+
+        // Recherche de la réservation couvrant cette période
+        ReservationVehicule entity = repo.findByUtilisateurIdAndPeriodeCouvrante(
+                user.getId(),
+                dateDebut,
+                dateFinRecherche
+        ).orElseThrow(() -> new NotFoundException(
+                "Aucune réservation trouvée pour la période du " + dateDebut +
+                        " au " + dateFinRecherche
+        ));
+
+        return reservationMapper.toDto(entity);
+    }
 
 
     @Override
     public void delete(Utilisateur user, Long id) {
+        // Récupération de la réservation
         ReservationVehicule entity = repo.findById(id)
                 .orElseThrow(() -> new NotFoundException("Réservation introuvable: " + id));
+
+        // Vérification que l'utilisateur est bien le propriétaire de la réservation
         if (!entity.getUtilisateur().getId().equals(user.getId())) {
             throw new BadRequestException("L'utilisateur ne correspond pas.");
         }
+
+        // Vérification qu'aucun covoiturage n'utilise ce véhicule pendant cette période
+        if (entity.getVehiculeEntreprise() != null) {
+            Long vehiculeServiceId = entity.getVehiculeEntreprise().getId();
+            LocalDateTime dateDebutReservation = entity.getDateDebut();
+            LocalDateTime dateFinReservation = entity.getDateFin();
+
+            // Recherche des annonces de covoiturage qui pourraient chevaucher cette période
+            // On cherche toutes les annonces qui démarrent avant la fin de la réservation
+            List<AnnonceCovoiturage> annoncesAVerifier =
+                    annonceCovoiturageRepo.findByVehiculeServiceIdBetweenDates(
+                            vehiculeServiceId,
+                            dateDebutReservation,
+                            dateFinReservation
+                    );
+
+            // Filtrage manuel pour vérifier les chevauchements réels
+            List<AnnonceCovoiturage> annoncesConflictuelles = annoncesAVerifier.stream()
+                    .filter(annonce -> {
+                        LocalDateTime heureDebutCovoiturage = annonce.getHeureDepart();
+                        LocalDateTime heureFinCovoiturage = heureDebutCovoiturage
+                                .plusMinutes(annonce.getDureeTrajet());
+
+                        // Vérification de chevauchement : deux périodes se chevauchent si :
+                        // - le covoiturage commence avant la fin de la réservation ET
+                        // - le covoiturage finit après le début de la réservation
+                        return heureDebutCovoiturage.isBefore(dateFinReservation)
+                                && heureFinCovoiturage.isAfter(dateDebutReservation);
+                    })
+                    .toList();
+
+            // Si des annonces utilisent ce véhicule pendant cette période, on refuse la suppression
+            if (!annoncesConflictuelles.isEmpty()) {
+                StringBuilder message = new StringBuilder(
+                        "Impossible de supprimer cette réservation. Le véhicule est utilisé dans " +
+                                annoncesConflictuelles.size() + " annonce(s) de covoiturage pendant cette période :\n"
+                );
+
+                // Construction d'un message détaillé avec les annonces en conflit
+                for (AnnonceCovoiturage annonce : annoncesConflictuelles) {
+                    LocalDateTime heureFinCovoiturage = annonce.getHeureDepart()
+                            .plusMinutes(annonce.getDureeTrajet());
+                    message.append("- Covoiturage #")
+                            .append(annonce.getId())
+                            .append(" : du ")
+                            .append(annonce.getHeureDepart())
+                            .append(" au ")
+                            .append(heureFinCovoiturage)
+                            .append("\n");
+                }
+
+                throw new BadRequestException(message.toString());
+            }
+        }
+
+        // Si toutes les validations passent, on supprime la réservation
         repo.deleteById(id);
     }
 
