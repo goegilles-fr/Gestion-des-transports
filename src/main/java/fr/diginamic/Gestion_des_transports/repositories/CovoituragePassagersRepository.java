@@ -33,4 +33,6 @@ public interface CovoituragePassagersRepository extends JpaRepository<Covoiturag
     // Trouver les covoiturages d'un utilisateur par ID
     @Query("SELECT cp FROM CovoituragePassagers cp WHERE cp.utilisateur.id = :utilisateurId")
     List<CovoituragePassagers> findByUtilisateurId(@Param("utilisateurId") Long utilisateurId);
+
+    List<CovoituragePassagers> findByAnnonceCovoiturageId(Long idAnnonce);
 }

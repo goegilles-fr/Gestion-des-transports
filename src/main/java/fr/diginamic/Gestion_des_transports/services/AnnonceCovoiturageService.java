@@ -6,10 +6,12 @@ import fr.diginamic.Gestion_des_transports.entites.*;
 import fr.diginamic.Gestion_des_transports.mapper.AnnonceCovoiturageMapper;
 import fr.diginamic.Gestion_des_transports.mapper.AdresseMapper;
 import fr.diginamic.Gestion_des_transports.repositories.*;
+import fr.diginamic.Gestion_des_transports.tools.EmailSender;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,6 +31,8 @@ public class AnnonceCovoiturageService {
     private final AdresseMapper adresseMapper;
     private final UtilisateurService utilisateurService;
 
+    @Autowired
+    private EmailSender emailSender;
 
     @Autowired
     public AnnonceCovoiturageService(
@@ -164,6 +168,7 @@ public class AnnonceCovoiturageService {
      * @param idUtilisateurResponsable l'ID de l'utilisateur responsable
      */
     public void supprimerAnnonce(Long idAnnonce, Long idUtilisateurResponsable) {
+        System.out.println("deleting annonce id=" +idAnnonce);
         // Vérifier que l'annonce existe
         AnnonceCovoiturage annonceExistante = annonceCovoiturageRepository.findById(idAnnonce)
                 .orElseThrow(() -> new IllegalArgumentException("Annonce de covoiturage introuvable avec l'ID: " + idAnnonce));
@@ -172,9 +177,39 @@ public class AnnonceCovoiturageService {
         if (!annonceExistante.getResponsable().getId().equals(idUtilisateurResponsable)) {
             throw new IllegalArgumentException("Vous n'êtes pas autorisé à supprimer cette annonce");
         }
-        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        // TODO: Ajouter la logique d'envoi de mails aux passagers avant suppression
-        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+        // Récupérer tous les passagers de cette annonce pour les notifier
+        List<CovoituragePassagers> passagers = covoituragePassagersRepository.findByAnnonceCovoiturageId(idAnnonce);
+
+        System.out.println("Passagers à notifier pour l'annonce " + idAnnonce + ":");
+        for (CovoituragePassagers passager : passagers) {
+            System.out.println(passager.getUtilisateur().getEmail());
+        }
+
+
+        // Envoyer un email à chaque passager pour les informer de l'annulation
+        for (CovoituragePassagers passager : passagers) {
+            Utilisateur utilisateurPassager = passager.getUtilisateur();
+            String nomCompletResponsable = annonceExistante.getResponsable().getPrenom() + " " +
+                    annonceExistante.getResponsable().getNom();
+
+            // Formatage des informations du trajet
+            String infoTrajet = annonceExistante.getAdresseDepart().getVille() + " → " +
+                    annonceExistante.getAdresseArrivee().getVille() +
+                    " le " + annonceExistante.getHeureDepart().format(DateTimeFormatter.ofPattern("dd/MM/yyyy à HH:mm"));
+
+            emailSender.send(
+                    utilisateurPassager.getEmail(),
+                    "Le covoiturage " + infoTrajet + " organisé par " + nomCompletResponsable +
+                            " a été annulé. Nous nous excusons pour ce désagrément. Vous pouvez rechercher d'autres covoiturages sur notre plateforme.",
+                    "Hello " + utilisateurPassager.getPrenom() + " " + utilisateurPassager.getNom() +
+                            ", votre covoiturage a été annulé",
+                    "Annulation de votre covoiturage"
+            );
+        }
+
+
 
         // Supprimer l'annonce
         annonceCovoiturageRepository.delete(annonceExistante);
