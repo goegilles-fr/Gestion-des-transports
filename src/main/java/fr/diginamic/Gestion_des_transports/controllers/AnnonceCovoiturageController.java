@@ -2,6 +2,7 @@ package fr.diginamic.Gestion_des_transports.controllers;
 
 import fr.diginamic.Gestion_des_transports.dto.AnnonceCovoiturageAvecPlacesDto;
 import fr.diginamic.Gestion_des_transports.dto.AnnonceCovoiturageDto;
+import fr.diginamic.Gestion_des_transports.entites.Utilisateur;
 import fr.diginamic.Gestion_des_transports.services.AnnonceCovoiturageService;
 import fr.diginamic.Gestion_des_transports.services.UtilisateurService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -40,25 +41,19 @@ public class AnnonceCovoiturageController {
      * @return l'annonce créée avec son ID
      */
     @PostMapping("/create")
-    @Operation(
-            summary = "Créer une annonce. vehiculeServiceId peut être nul")
-    public ResponseEntity<AnnonceCovoiturageDto> creerAnnonce(
+    @Operation(summary = "Créer une annonce. vehiculeServiceId peut être nul")
+    public ResponseEntity<?> creerAnnonce(
             @Valid @RequestBody AnnonceCovoiturageDto annonceDto,
             Authentication authentication) {
 
         try {
-            // Récupérer l'ID de l'utilisateur connecté depuis le JWT
             Long idUtilisateurConnecte = utilisateurService.obtenirUtilisateurParEmail(authentication.getName()).getId();
-
-            // Créer l'annonce
             AnnonceCovoiturageDto annonceCree = annonceCovoiturageService.creerAnnonce(annonceDto, idUtilisateurConnecte);
-
             return ResponseEntity.status(HttpStatus.CREATED).body(annonceCree);
-
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne: " + e.getMessage());
         }
     }
 
@@ -218,7 +213,7 @@ public class AnnonceCovoiturageController {
      */
     @GetMapping("/")
     @Operation(
-            summary = "Récupérer toutes les annonces de covoiturage")
+            summary = "Récupérer toutes les annonces de covoiturage. L'affichage indique également le nombre total de places et leur occupation.")
 
 
     public ResponseEntity<List<AnnonceCovoiturageAvecPlacesDto>> obtenirToutesLesAnnonces() {
@@ -230,6 +225,31 @@ public class AnnonceCovoiturageController {
         }
     }
 
+
+    /**
+     * Récupère toutes les réservations de covoiturage de l'utilisateur connecté (en tant que passager)
+     * @param authentication l'authentification JWT de l'utilisateur
+     * @return liste des annonces où l'utilisateur est passager
+     */
+    @GetMapping("/mes-reservations")
+    @Operation(
+            summary = "Récupérer toutes les réservations de covoiturage de l'utilisateur connecté en tant que passager. L'affichage indique également le nombre total de places et leur occupation.")
+    public ResponseEntity<?> obtenirToutesLesReservationsUtilisateur(Authentication authentication) {
+        try {
+            // Récupérer l'ID de l'utilisateur connecté depuis le JWT
+            String emailUtilisateurConnecte = authentication.getName();
+            Utilisateur utilisateur = utilisateurService.obtenirUtilisateurParEmail(emailUtilisateurConnecte);
+
+            // Récupérer les réservations de l'utilisateur
+            List<AnnonceCovoiturageAvecPlacesDto> reservations = annonceCovoiturageService.obtenirReservationsUtilisateur(utilisateur.getId());
+
+            return ResponseEntity.ok(reservations);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 
 
 }

@@ -1,8 +1,10 @@
 package fr.diginamic.Gestion_des_transports.services;
 
+import fr.diginamic.Gestion_des_transports.dto.ModifierProfilDto;
 import fr.diginamic.Gestion_des_transports.entites.Adresse;
 import fr.diginamic.Gestion_des_transports.entites.Utilisateur;
 import fr.diginamic.Gestion_des_transports.enums.RoleEnum;
+import fr.diginamic.Gestion_des_transports.mapper.ModifierProfilMapper;
 import fr.diginamic.Gestion_des_transports.repositories.UtilisateurRepository;
 import fr.diginamic.Gestion_des_transports.tools.EmailSender;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +31,13 @@ public class UtilisateurService {
     private PasswordEncoder passwordEncoder;
 
     @Autowired
+
     private EmailSender emailSender;
+
+    private ModifierProfilMapper modifierProfilMapper;
+
+
+
     /**
      * Inscrire un nouvel utilisateur
      * @param nom Le nom de l'utilisateur
@@ -251,5 +259,39 @@ public class UtilisateurService {
     @Transactional(readOnly = true)
     public List<Utilisateur> obtenirTousLesUtilisateurs() {
         return utilisateurRepository.findAll();
+    }
+
+    /**
+     * Modifie le profil d'un utilisateur (mise à jour partielle)
+     * Seuls les champs autorisés peuvent être modifiés : nom, prénom, adresse, mot de passe
+     *
+     * @param emailUtilisateur email de l'utilisateur à modifier
+     * @param modifierProfilDto données à mettre à jour (peut contenir seulement les champs à modifier)
+     * @return l'utilisateur mis à jour
+     * @throws RuntimeException si l'utilisateur n'est pas trouvé
+     */
+    public Utilisateur modifierProfilUtilisateur(String emailUtilisateur, ModifierProfilDto modifierProfilDto) {
+        // Récupérer l'utilisateur existant par email
+        Utilisateur utilisateurExistant = obtenirUtilisateurParEmail(emailUtilisateur);
+
+        // Si un nouveau mot de passe est fourni, le hacher avant la mise à jour
+        if (modifierProfilDto.motDePasse() != null && !modifierProfilDto.motDePasse().trim().isEmpty()) {
+            // Créer un nouveau DTO avec le mot de passe haché
+            ModifierProfilDto dtoAvecMotDePasseHache = new ModifierProfilDto(
+                    modifierProfilDto.nom(),
+                    modifierProfilDto.prenom(),
+                    modifierProfilDto.adresse(),
+                    passwordEncoder.encode(modifierProfilDto.motDePasse())
+            );
+
+            // Utiliser le mapper pour mettre à jour seulement les champs fournis
+            modifierProfilMapper.mettreAJourProfil(dtoAvecMotDePasseHache, utilisateurExistant);
+        } else {
+            // Pas de mot de passe à modifier, utiliser le DTO tel quel
+            modifierProfilMapper.mettreAJourProfil(modifierProfilDto, utilisateurExistant);
+        }
+
+        // Sauvegarder les modifications
+        return utilisateurRepository.save(utilisateurExistant);
     }
 }

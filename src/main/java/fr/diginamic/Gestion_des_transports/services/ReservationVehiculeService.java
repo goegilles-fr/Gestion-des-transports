@@ -3,6 +3,7 @@ package fr.diginamic.Gestion_des_transports.services;
 import fr.diginamic.Gestion_des_transports.dto.ReservationVehiculeDTO;
 import fr.diginamic.Gestion_des_transports.entites.Utilisateur;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface ReservationVehiculeService {
@@ -13,4 +14,5 @@ public interface ReservationVehiculeService {
     void delete(Utilisateur user, Long id);
     List<ReservationVehiculeDTO> findByUtilisateurId(Utilisateur user);
     List<ReservationVehiculeDTO> findByVehiculeId(Long vehiculeId);
+    ReservationVehiculeDTO findByUtilisateurAndPeriode(Utilisateur user, LocalDateTime dateDebut, Integer dureeMinutes);
 }

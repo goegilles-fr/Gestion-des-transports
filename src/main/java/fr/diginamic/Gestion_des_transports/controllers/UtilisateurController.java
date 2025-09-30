@@ -1,5 +1,6 @@
 package fr.diginamic.Gestion_des_transports.controllers;
 
+import fr.diginamic.Gestion_des_transports.dto.ModifierProfilDto;
 import fr.diginamic.Gestion_des_transports.dto.UtilisateurDto;
 import fr.diginamic.Gestion_des_transports.dto.VehiculeDTO;
 import fr.diginamic.Gestion_des_transports.entites.Utilisateur;
@@ -9,6 +10,7 @@ import fr.diginamic.Gestion_des_transports.mapper.VehiculeMapper;
 import fr.diginamic.Gestion_des_transports.services.UtilisateurService;
 import fr.diginamic.Gestion_des_transports.enums.RoleEnum;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -248,6 +250,48 @@ public class UtilisateurController {
             reponse.put("utilisateur", utilisateurDto);
 
             return ResponseEntity.ok(reponse);
+        } catch (RuntimeException e) {
+            Map<String, String> erreur = new HashMap<>();
+            erreur.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erreur);
+        }
+    }
+
+
+    /**
+     * Endpoint pour modifier le profil de l'utilisateur connecté
+     * Accessible à PUT /api/utilisateurs/profile
+     *
+     * @param authentication authentification JWT pour récupérer l'utilisateur connecté
+     * @param modifierProfilDto données à mettre à jour (peut être partiel)
+     * @return le profil utilisateur mis à jour
+     */
+    @PutMapping("/profile")
+    @Operation(
+            summary = "Modifier le profil de l'utilisateur connecté (nom, prénom, adresse, mot de passe)")
+    public ResponseEntity<?> modifierProfilUtilisateurConnecte(
+            Authentication authentication,
+            @RequestBody @Valid ModifierProfilDto modifierProfilDto) {
+        try {
+            // Vérifier qu'au moins un champ est fourni pour la mise à jour
+            if (!modifierProfilDto.aDesChampsPourMiseAJour()) {
+                Map<String, String> erreur = new HashMap<>();
+                erreur.put("error", "Au moins un champ doit être fourni pour la mise à jour");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erreur);
+            }
+
+            // Récupérer l'email de l'utilisateur connecté depuis le token JWT
+            String emailUtilisateurConnecte = authentication.getName();
+
+            // Appeler le service pour mettre à jour le profil
+            Utilisateur utilisateurMisAJour = utilisateurService.modifierProfilUtilisateur(
+                    emailUtilisateurConnecte, modifierProfilDto);
+
+            // ENTITE -> DTO pour éviter l'exposition du mot de passe
+            UtilisateurDto utilisateurDtoMisAJour = utilisateurMapper.versDto(utilisateurMisAJour);
+
+            return ResponseEntity.ok(utilisateurDtoMisAJour);
+
         } catch (RuntimeException e) {
             Map<String, String> erreur = new HashMap<>();
             erreur.put("error", e.getMessage());

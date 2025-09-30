@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface VehiculeEntrepriseRepository extends JpaRepository<VehiculeEntreprise, Long> {
     List<VehiculeEntreprise> findByStatut(StatutVehicule statut);
+
+
 }

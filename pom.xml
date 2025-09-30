@@ -11,8 +11,8 @@
     <groupId>fr.diginamic</groupId>
     <artifactId>Gestion-des-transports</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>demo-security</name>
-    <description>Demo project for Spring Boot</description>
+    <name>covoit-app</name>
+    <description>Gestion des transports</description>
     <url />
     <licenses>
         <license />
