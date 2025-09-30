@@ -15,6 +15,8 @@ jobs:
      DB_URL_COVOIT: ${{ secrets.DB_URL_COVOIT }}
      DB_USER_COVOIT: ${{ secrets.DB_USER_COVOIT }}
      DB_PASS_COVOIT: ${{ secrets.DB_PASS_COVOIT }}
+     MJ_APIKEY_PUBLIC: ${{ secrets.MJ_APIKEY_PUBLIC }}
+     MJ_APIKEY_PRIVATE: ${{ secrets.MJ_APIKEY_PRIVATE }}
     
     steps:
       - uses: actions/checkout@v4
@@ -39,8 +41,10 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
       - name: Build and analyze
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+         MJ_APIKEY_PUBLIC: ${{ secrets.MJ_APIKEY_PUBLIC }}
+         MJ_APIKEY_PRIVATE: ${{ secrets.MJ_APIKEY_PRIVATE }}
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=goegilles-fr_Gestion-des-transports_c8774846-d55c-408f-a6e1-fe79086912eb -Dsonar.projectName='Gestion-des-transports'
       # Docker build and push steps
       - name: Set up Docker Buildx
