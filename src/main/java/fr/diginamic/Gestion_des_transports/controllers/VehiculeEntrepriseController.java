@@ -6,6 +6,7 @@ import fr.diginamic.Gestion_des_transports.enums.RoleEnum;
 import fr.diginamic.Gestion_des_transports.services.UtilisateurService;
 import fr.diginamic.Gestion_des_transports.services.VehiculeEntrepriseService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -23,6 +24,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/vehicules-entreprise")
+@Tag(name = "Véhicules d'entreprise", description = "Gestion des véhicules de la société")
 public class VehiculeEntrepriseController {
 
     private final VehiculeEntrepriseService service;
@@ -32,6 +34,7 @@ public class VehiculeEntrepriseController {
     }
 
     @GetMapping
+    @Operation(summary = "Récupérer tous les véhicules d'entreprise")
     public ResponseEntity<List<VehiculeDTO>> getAll() {
         return ResponseEntity.ok(service.findAll());
     }
@@ -59,11 +62,13 @@ public class VehiculeEntrepriseController {
 
 
     @GetMapping("/{id}")
+    @Operation(summary = "Récupérer un véhicule d'entreprise par son ID")
     public ResponseEntity<VehiculeDTO> getById(@PathVariable Long id) {
         return ResponseEntity.ok(service.findById(id));
     }
 
     @PostMapping
+    @Operation(summary = "Créer un nouveau véhicule d'entreprise (ADMIN uniquement)")
     public ResponseEntity<VehiculeDTO> create(@Valid @RequestBody VehiculeDTO dto,
                                               UriComponentsBuilder uriBuilder) {
         VehiculeDTO created = service.create(dto);
@@ -73,12 +78,14 @@ public class VehiculeEntrepriseController {
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "Modifier un véhicule d'entreprise existant (ADMIN uniquement, update partiel possible)")
     public ResponseEntity<VehiculeDTO> update(@AuthenticationPrincipal UserDetails userDetails, @PathVariable Long id,
                                               @Valid @RequestBody VehiculeDTO dto) {
         return ResponseEntity.ok(service.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Supprimer un véhicule d'entreprise (ADMIN uniquement)")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
@@ -86,6 +93,7 @@ public class VehiculeEntrepriseController {
 
     // Ex: /vehicules-entreprise/statut/EN_SERVICE
     @GetMapping("/statut/{statut}")
+    @Operation(summary = "Récupérer les véhicules d'entreprise par statut")
     public ResponseEntity<List<VehiculeDTO>> getByStatut(@PathVariable String statut) {
         return ResponseEntity.ok(service.findByStatut(statut));
     }

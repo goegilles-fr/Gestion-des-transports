@@ -9,10 +9,7 @@ import org.springframework.stereotype.Component;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-// MADE BY RICHARD !!!!!!!!
-// MADE BY RICHARD !!!!!!!!
-// MADE BY RICHARD !!!!!!!!
-// MADE BY RICHARD !!!!!!!!
+
 
 /**
  * Fournit des services de génération de token JWT et de vérification

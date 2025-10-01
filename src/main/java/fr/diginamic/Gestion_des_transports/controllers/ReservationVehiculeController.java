@@ -6,6 +6,7 @@ import fr.diginamic.Gestion_des_transports.enums.RoleEnum;
 import fr.diginamic.Gestion_des_transports.services.ReservationVehiculeService;
 import fr.diginamic.Gestion_des_transports.services.UtilisateurService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -23,6 +24,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/reservations-vehicules")
+@Tag(name = "Vehicules Réservations", description = "Réservations de véhicules d'entreprise")
 public class ReservationVehiculeController {
 
     private final ReservationVehiculeService service;
@@ -34,12 +36,14 @@ public class ReservationVehiculeController {
     }
 
     @GetMapping
+    @Operation(summary = "Obtenez toutes les réservations de voitures")
     public ResponseEntity<List<ReservationVehiculeDTO>> getAll() {
 
         return ResponseEntity.ok(service.findAll());
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Obtenir une réservation de voiture par identifiant. L'utilisateur ne peut obtenir que sa propre réservation, et non celle des autres.")
     public ResponseEntity<ReservationVehiculeDTO> getById(@AuthenticationPrincipal UserDetails userDetails, @PathVariable Long id) {
         Utilisateur user = getUtilisateur(userDetails);
 
@@ -47,6 +51,7 @@ public class ReservationVehiculeController {
     }
 
     @PostMapping
+    @Operation(summary = "Créer une nouvelle réservation de véhicule d'entreprise")
     public ResponseEntity<ReservationVehiculeDTO> create(@AuthenticationPrincipal UserDetails userDetails, @Valid @RequestBody ReservationVehiculeDTO dto,
                                                          UriComponentsBuilder uriBuilder) {
         Utilisateur user = getUtilisateur(userDetails);
@@ -58,6 +63,7 @@ public class ReservationVehiculeController {
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "Modifier une réservation existante (propriétaire uniquement, update partiel possible)")
     public ResponseEntity<ReservationVehiculeDTO> update(@AuthenticationPrincipal UserDetails userDetails, @PathVariable Long id,
                                                          @Valid @RequestBody ReservationVehiculeDTO dto) {
         Utilisateur user = getUtilisateur(userDetails);
@@ -72,6 +78,7 @@ public class ReservationVehiculeController {
      *
      */
     @DeleteMapping("/{id}")
+    @Operation(summary = "Supprimer une réservation (impossible si le véhicule est utilisé dans un covoiturage)")
     public ResponseEntity<Void> delete(@AuthenticationPrincipal UserDetails userDetails, @PathVariable Long id) {
         Utilisateur user = getUtilisateur(userDetails);
 
@@ -80,6 +87,7 @@ public class ReservationVehiculeController {
     }
 
     @GetMapping("/utilisateur")
+    @Operation(summary = "Récupérer toutes les réservations de l'utilisateur connecté")
     public ResponseEntity<List<ReservationVehiculeDTO>> getByUtilisateur(@AuthenticationPrincipal UserDetails userDetails) {
         Utilisateur user = getUtilisateur(userDetails);
 
@@ -116,6 +124,7 @@ public class ReservationVehiculeController {
 
 
     @GetMapping("/vehicule/{vehiculeId}")
+    @Operation(summary = "Récupérer toutes les réservations d'un véhicule spécifique")
     public ResponseEntity<List<ReservationVehiculeDTO>> getByVehicule(@AuthenticationPrincipal UserDetails userDetails, @PathVariable Long vehiculeId) {
 
         return ResponseEntity.ok(service.findByVehiculeId(vehiculeId));

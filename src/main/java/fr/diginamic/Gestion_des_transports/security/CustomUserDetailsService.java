@@ -10,10 +10,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-// MADE BY RICHARD !!!!!!!!
-// MADE BY RICHARD !!!!!!!!
-// MADE BY RICHARD !!!!!!!!
-// MADE BY RICHARD !!!!!!!!
 
 /**
  * Utilisée par AuthController pour authentifier l'utilisateur en 2 temps:
