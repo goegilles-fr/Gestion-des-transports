@@ -4,6 +4,8 @@ import fr.diginamic.Gestion_des_transports.dto.VehiculeDTO;
 import fr.diginamic.Gestion_des_transports.entites.Utilisateur;
 import fr.diginamic.Gestion_des_transports.services.UtilisateurService;
 import fr.diginamic.Gestion_des_transports.services.VehiculePersonnelService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/vehicules-personnels")
+@Tag(name = "Véhicules personnels", description = "Gestion des véhicules des employés")
 public class VehiculePersonnelController {
 
     private final VehiculePersonnelService service;
@@ -29,16 +32,20 @@ public class VehiculePersonnelController {
     }
 
     @GetMapping
+    @Operation(summary = "Récupérer tous les véhicules personnels")
     public ResponseEntity<List<VehiculeDTO>> getAll() {
         return ResponseEntity.ok(service.findAll());
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Récupérer un véhicule personnel par son ID")
     public ResponseEntity<VehiculeDTO> getById(@PathVariable Long id) {
         return ResponseEntity.ok(service.findById(id));
     }
 
     @PostMapping
+    @Operation(summary = "réer un nouveau véhicule personnel pour l'utilisateur connecté (limité à 1 véhicule par utilisateur)")
+
     public ResponseEntity<VehiculeDTO> create(@AuthenticationPrincipal UserDetails userDetails, @Valid @RequestBody VehiculeDTO dto) {
         Utilisateur user = getUtilisateur(userDetails);
 
@@ -48,6 +55,7 @@ public class VehiculePersonnelController {
     }
 
     @PutMapping
+    @Operation(summary = "Modifier le véhicule personnel de l'utilisateur connecté (update partiel possible)")
     public ResponseEntity<VehiculeDTO> update(@AuthenticationPrincipal UserDetails userDetails,
                                                        @Valid @RequestBody VehiculeDTO dto) {
         Utilisateur user = getUtilisateur(userDetails);
@@ -56,6 +64,7 @@ public class VehiculePersonnelController {
     }
 
     @DeleteMapping
+    @Operation(summary = "Supprimer le véhicule personnel de l'utilisateur connecté")
     public ResponseEntity<Void> delete(@AuthenticationPrincipal UserDetails userDetails) {
         Utilisateur user = getUtilisateur(userDetails);
 
@@ -64,6 +73,7 @@ public class VehiculePersonnelController {
     }
 
     @GetMapping("/utilisateur")
+    @Operation(summary = "Récupérer le véhicule personnel de l'utilisateur connecté")
     public ResponseEntity<List<VehiculeDTO>> getByUtilisateur(@AuthenticationPrincipal UserDetails userDetails) {
         Utilisateur user = getUtilisateur(userDetails);
 

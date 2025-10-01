@@ -14,10 +14,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-// MADE BY RICHARD !!!!!!!!
-// MADE BY RICHARD !!!!!!!!
-// MADE BY RICHARD !!!!!!!!
-// MADE BY RICHARD !!!!!!!!
+
 
 /**
  * Ce filtre HTTP est appelé systématiquement avant même d'accéder à un endpoint.

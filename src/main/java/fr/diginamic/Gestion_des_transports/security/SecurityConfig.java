@@ -34,19 +34,26 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource)) // Add CORS configuration
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/auth/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()
+
+                        // API Auth endpoints
+                        .requestMatchers("/api/auth/**").permitAll()
+
+                        // Swagger
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()
+
+                        // Static HTML and PNG files
+                        .requestMatchers(HttpMethod.GET, "/", "/*.html", "/*.png").permitAll()
+
+                        // Admin endpoints
                         .requestMatchers(HttpMethod.POST,   "/api/vehicules-entreprise").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT,    "/api/vehicules-entreprise/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/vehicules-entreprise/**").hasRole("ADMIN")
-
-
                         .requestMatchers(HttpMethod.PUT,    "/api/utilisateurs/*/verifier").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT,    "/api/utilisateurs/*/bannir").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET,    "/api/utilisateurs/non-verifies").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET,    "/api/utilisateurs/by-role").hasRole("ADMIN")
 
-
-
+                         // Everything else requires authentication
                         .anyRequest().authenticated()
                 );
 
