@@ -48,6 +48,13 @@ public class VehiculeEntrepriseServiceImpl implements VehiculeEntrepriseService 
         }
 
         LocalDateTime now = LocalDateTime.now();
+        //System.out.println("=== TIMEZONE DEBUG ===");
+        //System.out.println("Server timezone: " + java.util.TimeZone.getDefault().getID());
+        //System.out.println("Current time: " + now);
+        //System.out.println("Search dateDebut: " + dateDebut);
+        //System.out.println("Search dateFin: " + dateFin);
+        //System.out.println("======================");
+
         if (dateDebut.isBefore(now)) {
             throw new BadRequestException("DATES INCORRECTES : La date de début doit être dans le futur");
         }
@@ -65,27 +72,36 @@ public class VehiculeEntrepriseServiceImpl implements VehiculeEntrepriseService 
         // Loop through all company cars
         for (VehiculeEntreprise vehicule : vehiculesEnService) {
             List<ReservationVehicule> reservations = repoReservations.findByVehiculeEntrepriseId(vehicule.getId());
-            System.out.println("Vehicle ID " + vehicule.getId() + " has " + reservations.size() + " reservations");
+            //System.out.println("Vehicle ID " + vehicule.getId() + " has " + reservations.size() + " reservations");
 
             for (ReservationVehicule res : reservations) {
-                System.out.println("  Reservation: " + res.getDateDebut() + " to " + res.getDateFin());
+              //  System.out.println("  Reservation: " + res.getDateDebut() + " to " + res.getDateFin());
             }
 
             boolean isAvailable = true;
 
             // Check if the selected period intersects with any existing reservations
             for (ReservationVehicule reservation : reservations) {
-                if ((dateDebut.isAfter(reservation.getDateDebut()) && dateDebut.isBefore(reservation.getDateFin())) ||
-                        (dateFin.isAfter(reservation.getDateDebut()) && dateFin.isBefore(reservation.getDateFin())) ||
-                        (dateDebut.isBefore(reservation.getDateDebut()) && dateFin.isAfter(reservation.getDateFin())) ||
-                        (reservation.getDateDebut().isBefore(dateDebut) && reservation.getDateFin().isAfter(dateFin))) {
+                LocalDateTime reservationDebut = reservation.getDateDebut();
+                LocalDateTime reservationFin = reservation.getDateFin();
+
+
+                // Check for real overlap (excluding boundary touches)
+                if (((!dateDebut.isBefore(reservationDebut) && !dateDebut.isAfter(reservationFin)) ||
+                        (!dateFin.isBefore(reservationDebut) && !dateFin.isAfter(reservationFin)) ||
+                        (!dateDebut.isAfter(reservationDebut) && !dateFin.isBefore(reservationFin))) &&
+                        !(dateFin.isEqual(reservationDebut) || dateDebut.isEqual(reservationFin))) {
+
                     isAvailable = false;
                     break;
+                } else {
+
                 }
             }
 
             // If no conflicts found, add the vehicle to available list
             if (isAvailable) {
+
                 vehiculesDisponibles.add(vehicule);
             }
         }
