@@ -14,9 +14,7 @@ import fr.diginamic.Gestion_des_transports.services.impl.VehiculePersonnelServic
 import fr.diginamic.Gestion_des_transports.shared.BadRequestException;
 import fr.diginamic.Gestion_des_transports.shared.ConflictException;
 import fr.diginamic.Gestion_des_transports.shared.NotFoundException;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -51,8 +49,18 @@ public class VehiculePersonnelServiceTest {
     private VehiculePersonnel vehiculePersonnelTest;
     private VehiculeDTO vehiculeDtoTest;
 
+    @BeforeAll
+    static void beforeAll() {
+        System.out.println("Début de la campagne de tests VehiculePersonnelServiceTest");
+    }
+
+    @AfterAll
+    static void afterAll() {
+        System.out.println("Fin de la campagne de tests VehiculePersonnelServiceTest");
+    }
+
     @BeforeEach
-    void initialiserDonneesTest() {
+    void BeforeEach() {
         // Préparer un utilisateur de test
         utilisateurTest = new Utilisateur("Dupont", "Jean", "jean.dupont@example.com", RoleEnum.ROLE_USER);
         utilisateurTest.setId(1L);
@@ -89,7 +97,7 @@ public class VehiculePersonnelServiceTest {
         );
     }
 
-    // ========== Tests pour findByUtilisateurId ==========
+
 
     @Test
     @DisplayName("Devrait retourner la liste des véhicules personnels appartenant à l'utilisateur spécifié")

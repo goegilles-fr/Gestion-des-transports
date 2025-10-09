@@ -1,17 +1,12 @@
 package fr.diginamic.Gestion_des_transports;
 import fr.diginamic.Gestion_des_transports.entites.Adresse;
-import fr.diginamic.Gestion_des_transports.entites.Utilisateur;
 import fr.diginamic.Gestion_des_transports.repositories.AdresseRepository;
-import fr.diginamic.Gestion_des_transports.repositories.UtilisateurRepository;
 import fr.diginamic.Gestion_des_transports.services.AdresseService;
-import fr.diginamic.Gestion_des_transports.services.UtilisateurService;
-import fr.diginamic.Gestion_des_transports.tools.EmailSender;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -34,8 +29,18 @@ public class AdresseServiceTest {
 
     private Adresse adresseTest;
 
+    @BeforeAll
+    static void beforeAll() {
+        System.out.println("Début de la campagne de tests AdresseServiceTest");
+    }
+
+    @AfterAll
+    static void afterAll() {
+        System.out.println("Fin de la campagne de tests AdresseServiceTest");
+    }
+
     @BeforeEach
-    void initialiserDonneesTest() {
+    void BeforeEach() {
         // Préparer une adresse de test réutilisable
         adresseTest = new Adresse(42, "Rue de la République", "34000", "Montpellier");
         adresseTest.setId(1L);
@@ -70,11 +75,11 @@ public class AdresseServiceTest {
     @Test
     @DisplayName("Devrait lever une exception IllegalArgumentException lors de la tentative de création d'une adresse avec un objet null")
     void creerAdresse_ShouldThrowIllegalArgumentExceptionWhenAdresseObjectIsNull() {
-        // Arrange
+
         // Arrange
         when(adresseRepository.save(null)).thenThrow(new IllegalArgumentException("L'adresse ne peut pas être null"));
 
-        // Act & Assert
+        // Act Assert
         assertThrows(IllegalArgumentException.class, () -> {
             adresseService.creerAdresse(null);
         });
@@ -110,7 +115,7 @@ public class AdresseServiceTest {
     @Test
     @DisplayName("Devrait créer une adresse valide même lorsque le numéro de rue est null, permettant les adresses sans numéro")
     void creerAdresse_ShouldCreateValidAdresseWhenNumeroIsNull(){
-    // Arrange
+        // Arrange
         Adresse adresseSauvegardee = new Adresse(null, "Place de la Comédie", "34000", "Montpellier");
         adresseSauvegardee.setId(25L);
 
