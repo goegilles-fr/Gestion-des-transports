@@ -8,6 +8,7 @@ import fr.diginamic.Gestion_des_transports.mapper.ModifierProfilMapper;
 import fr.diginamic.Gestion_des_transports.repositories.UtilisateurRepository;
 import fr.diginamic.Gestion_des_transports.tools.EmailSender;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -15,8 +16,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.security.SecureRandom;
 @Service
 @Transactional
 public class UtilisateurService {
@@ -37,6 +41,14 @@ public class UtilisateurService {
     @Autowired
     private ModifierProfilMapper modifierProfilMapper;
 
+    @Value("${app.base.url}")
+    private String urlBase;
+    // Stockage en mémoire des tokens de réinitialisation
+    // Clé: token, Valeur: email de l'utilisateur
+    private final Map<String, String> tokensReinitialisation = new ConcurrentHashMap<>();
+
+    // Clé: token, Valeur: date d'expiration
+    private final Map<String, Long> tokensExpiration = new ConcurrentHashMap<>();
 
 
     /**
@@ -294,5 +306,204 @@ public class UtilisateurService {
 
         // Sauvegarder les modifications
         return utilisateurRepository.save(utilisateurExistant);
+    }
+
+
+
+            /**
+            * Demande de réinitialisation de mot de passe
+            * Génère un token unique et envoie un email avec le lien
+            *
+            * @param email L'email de l'utilisateur
+            * @throws RuntimeException Si l'email est vide ou l'utilisateur n'existe pas
+            */
+    public void demanderReinitialisationMotDePasse(String email) {
+        // Validation de l'email
+        if (email == null || email.trim().isEmpty()) {
+            throw new RuntimeException("L'email est requis");
+        }
+
+        // Vérifier que l'utilisateur existe
+        Optional<Utilisateur> utilisateurOpt = utilisateurRepository.findByEmail(email);
+        if (utilisateurOpt.isEmpty()) {
+            throw new RuntimeException("Aucun utilisateur trouvé avec cet email");
+        }
+
+        Utilisateur utilisateur = utilisateurOpt.get();
+
+        // Vérifier que l'utilisateur n'est pas banni ou supprimé
+        if (Boolean.TRUE.equals(utilisateur.getEstBanni())) {
+            throw new RuntimeException("Ce compte est banni");
+        }
+
+        if (Boolean.TRUE.equals(utilisateur.getEstSupprime())) {
+            throw new RuntimeException("Ce compte a été supprimé");
+        }
+
+        // Générer un token unique et sécurisé
+        String token = genererTokenSecurise();
+
+        // Stocker le token avec une expiration de 1 heure (3600000 ms)
+        tokensReinitialisation.put(token, email);
+        tokensExpiration.put(token, System.currentTimeMillis() + 3600000);
+
+        // Construire le lien de réinitialisation
+        String lienReinitialisation = urlBase + "/api/auth/reset-password?token=" + token;
+
+        // Envoyer l'email avec le lien
+        emailSender.send(
+                email,
+                "Réinitialisation de votre mot de passe",
+                "Bonjour " + utilisateur.getPrenom() + " " + utilisateur.getNom() +
+                        ",\n\nVous avez demandé la réinitialisation de votre mot de passe.\n\n" +
+                        "Cliquez sur ce lien pour réinitialiser votre mot de passe :\n" +
+                        lienReinitialisation + "\n\n" +
+                        "Ce lien expirera dans 1 heure.\n\n" +
+                        "Si vous n'avez pas demandé cette réinitialisation, ignorez cet email.",
+                "Réinitialisation de mot de passe"
+        );
+    }
+
+    /**
+     * Réinitialise le mot de passe avec le token reçu
+     * Génère un nouveau mot de passe aléatoire et l'envoie par email
+     *
+     * @param token Le token de réinitialisation
+     * @throws RuntimeException Si le token est invalide, expiré ou utilisateur non trouvé
+     */
+    public void reinitialiserMotDePasseAvecToken(String token) {
+        // Validation du token
+        if (token == null || token.trim().isEmpty()) {
+            throw new RuntimeException("Token invalide");
+        }
+
+        // Vérifier que le token existe
+        if (!tokensReinitialisation.containsKey(token)) {
+            throw new RuntimeException("Token invalide ou déjà utilisé");
+        }
+
+        // Vérifier que le token n'a pas expiré
+        Long dateExpiration = tokensExpiration.get(token);
+        if (dateExpiration == null || System.currentTimeMillis() > dateExpiration) {
+            // Nettoyer les tokens expirés
+            tokensReinitialisation.remove(token);
+            tokensExpiration.remove(token);
+            throw new RuntimeException("Le token a expiré");
+        }
+
+        // Récupérer l'email associé au token
+        String email = tokensReinitialisation.get(token);
+
+        // Récupérer l'utilisateur
+        Optional<Utilisateur> utilisateurOpt = utilisateurRepository.findByEmail(email);
+        if (utilisateurOpt.isEmpty()) {
+            throw new RuntimeException("Utilisateur non trouvé");
+        }
+
+        Utilisateur utilisateur = utilisateurOpt.get();
+
+        // Générer un nouveau mot de passe aléatoire
+        String nouveauMotDePasse = genererMotDePasseAleatoire();
+
+        // Encoder et sauvegarder le nouveau mot de passe
+        utilisateur.setPassword(passwordEncoder.encode(nouveauMotDePasse));
+        utilisateurRepository.save(utilisateur);
+
+        // Invalider le token (suppression)
+        tokensReinitialisation.remove(token);
+        tokensExpiration.remove(token);
+
+        // Envoyer le nouveau mot de passe par email
+        emailSender.send(
+                email,
+                "Votre nouveau mot de passe",
+                "Bonjour " + utilisateur.getPrenom() + " " + utilisateur.getNom() +
+                        ",\n\nVotre mot de passe a été réinitialisé avec succès.\n\n" +
+                        "Votre nouveau mot de passe est : " + nouveauMotDePasse + "\n\n" +
+                        "Pour des raisons de sécurité, nous vous recommandons de le changer " +
+                        "après votre prochaine connexion.",
+                "Nouveau mot de passe"
+        );
+    }
+
+    /**
+     * Génère un token sécurisé de 32 caractères
+     *
+     * @return Le token généré
+     */
+    private String genererTokenSecurise() {
+        SecureRandom random = new SecureRandom();
+        byte[] bytes = new byte[32];
+        random.nextBytes(bytes);
+
+        // Convertir en hexadécimal
+        StringBuilder token = new StringBuilder();
+        for (byte b : bytes) {
+            token.append(String.format("%02x", b));
+        }
+        return token.toString();
+    }
+
+    /**
+     * Génère un mot de passe aléatoire de 12 caractères
+     * Contient majuscules, minuscules, chiffres et caractères spéciaux
+     *
+     * @return Le mot de passe généré
+     */
+    private String genererMotDePasseAleatoire() {
+        String caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*";
+        SecureRandom random = new SecureRandom();
+        StringBuilder motDePasse = new StringBuilder(12);
+
+        for (int i = 0; i < 12; i++) {
+            motDePasse.append(caracteres.charAt(random.nextInt(caracteres.length())));
+        }
+
+        return motDePasse.toString();
+    }
+
+
+            /**
+            * Change le mot de passe d'un utilisateur authentifié
+            *
+            * @param email L'email de l'utilisateur
+            * @param nouveauMotDePasse Le nouveau mot de passe
+            * @throws RuntimeException Si l'email est invalide, le mot de passe vide, ou l'utilisateur non trouvé
+            */
+    public void changerMotDePasse(String email, String nouveauMotDePasse) {
+        // Validation de l'email
+        if (email == null || email.trim().isEmpty()) {
+            throw new RuntimeException("Email invalide");
+        }
+
+        // Validation du nouveau mot de passe
+        if (nouveauMotDePasse == null || nouveauMotDePasse.trim().isEmpty()) {
+            throw new RuntimeException("Le nouveau mot de passe est requis");
+        }
+
+        if (nouveauMotDePasse.length() < 6) {
+            throw new RuntimeException("Le mot de passe doit contenir au moins 6 caractères");
+        }
+
+        // Récupérer l'utilisateur
+        Optional<Utilisateur> utilisateurOpt = utilisateurRepository.findByEmail(email);
+        if (utilisateurOpt.isEmpty()) {
+            throw new RuntimeException("Utilisateur non trouvé");
+        }
+
+        Utilisateur utilisateur = utilisateurOpt.get();
+
+        // Vérifier que l'utilisateur n'est pas banni ou supprimé
+        if (Boolean.TRUE.equals(utilisateur.getEstBanni())) {
+            throw new RuntimeException("Ce compte est banni");
+        }
+
+        if (Boolean.TRUE.equals(utilisateur.getEstSupprime())) {
+            throw new RuntimeException("Ce compte a été supprimé");
+        }
+
+        // Encoder et sauvegarder le nouveau mot de passe
+        utilisateur.setPassword(passwordEncoder.encode(nouveauMotDePasse));
+        utilisateurRepository.save(utilisateur);
     }
 }
