@@ -34,6 +34,7 @@ public class UtilisateurService {
 
     private EmailSender emailSender;
 
+    @Autowired
     private ModifierProfilMapper modifierProfilMapper;
 
 
