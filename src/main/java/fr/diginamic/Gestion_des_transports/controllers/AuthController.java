@@ -16,10 +16,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.ErrorResponse;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import fr.diginamic.Gestion_des_transports.security.CustomUserDetailsService;
 import fr.diginamic.Gestion_des_transports.security.JwtUtil;
@@ -128,9 +125,31 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erreur);
         }
     }
+    /**
+     * Réinitialisation effective du mot de passe via le token
+     * Génère un nouveau mot de passe et l'envoie par email
+     *
+     * @param token Le token de réinitialisation
+     * @return ResponseEntity avec message de confirmation
+     *
+     * GET /api/auth/reset-password?token=XXXX
+     */
+    @GetMapping("/reset-password")
+    @Operation(summary = "Réinitialiser le mot de passe avec le token reçu par email")
+    public ResponseEntity<?> reinitialiserMotDePasseAvecToken(@RequestParam("token") String token) {
+        try {
+            utilisateurService.reinitialiserMotDePasseAvecToken(token);
 
+            Map<String, String> reponse = new HashMap<>();
+            reponse.put("message", "Votre mot de passe a été réinitialisé. Consultez votre email.");
+            return ResponseEntity.ok(reponse);
 
-
+        } catch (RuntimeException e) {
+            Map<String, String> erreur = new HashMap<>();
+            erreur.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erreur);
+        }
+    }
 
 
 }
