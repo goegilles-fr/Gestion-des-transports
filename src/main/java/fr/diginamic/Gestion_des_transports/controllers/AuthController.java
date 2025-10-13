@@ -5,6 +5,7 @@ import fr.diginamic.Gestion_des_transports.entites.Utilisateur;
 import fr.diginamic.Gestion_des_transports.mapper.AdresseMapper;
 import fr.diginamic.Gestion_des_transports.services.UtilisateurService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -30,6 +31,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "Authentification", description = "Gestion de l'authentification et des sessions utilisateur")
 public class AuthController {
 
     /** authenticationManager : permet d'authentifier l'utilisateur */

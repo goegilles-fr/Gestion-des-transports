@@ -6,6 +6,7 @@ import fr.diginamic.Gestion_des_transports.entites.Utilisateur;
 import fr.diginamic.Gestion_des_transports.services.AnnonceCovoiturageService;
 import fr.diginamic.Gestion_des_transports.services.UtilisateurService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/covoit")
 @CrossOrigin(origins = "*")
+@Tag(name = "Annonces de covoiturage", description = "Gestion des annonces de covoiturage et des réservations")
 public class AnnonceCovoiturageController {
 
     private final AnnonceCovoiturageService annonceCovoiturageService;
@@ -133,9 +135,8 @@ public class AnnonceCovoiturageController {
             Integer placesTotales = annonceCovoiturageService.obtenirNombrePlacesTotales(id);
             Integer placesOccupees = annonceCovoiturageService.obtenirNombrePlacesOccupees(id);
 
-            AnnonceCovoiturageAvecPlacesDto response = AnnonceCovoiturageAvecPlacesDto.of(
-                    annonce, placesTotales, placesOccupees
-            );
+            AnnonceCovoiturageAvecPlacesDto response = AnnonceCovoiturageAvecPlacesDto.of(annonce, placesTotales, placesOccupees);
+
 
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
@@ -250,6 +251,29 @@ public class AnnonceCovoiturageController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+    /**
+     * Récupère toutes les annonces de covoiturage organisées par l'utilisateur connecté (en tant que conducteur)
+     * @param authentication l'authentification JWT de l'utilisateur
+     * @return liste des annonces où l'utilisateur est organisateur
+     */
+    @GetMapping("/mes-annonces")
+    @Operation(
+            summary = "Récupérer toutes les réservations de covoiturage de l'utilisateur connecté en tant que conducteur. L'affichage indique également le nombre total de places et leur occupation.")
+    public ResponseEntity<?> obtenirToutesLesAnnoncesUtilisateur(Authentication authentication) {
+        try {
+            // Récupérer l'ID de l'utilisateur connecté depuis le JWT
+            String emailUtilisateurConnecte = authentication.getName();
+            Utilisateur utilisateur = utilisateurService.obtenirUtilisateurParEmail(emailUtilisateurConnecte);
 
+            // Récupérer les annonces organisées par l'utilisateur
+            List<AnnonceCovoiturageAvecPlacesDto> annonces = annonceCovoiturageService.obtenirAnnoncesOrganiseesParUtilisateur(utilisateur.getId());
+
+            return ResponseEntity.ok(annonces);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 
 }

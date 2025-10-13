@@ -10,6 +10,7 @@ import fr.diginamic.Gestion_des_transports.mapper.VehiculeMapper;
 import fr.diginamic.Gestion_des_transports.services.UtilisateurService;
 import fr.diginamic.Gestion_des_transports.enums.RoleEnum;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 import org.springframework.security.core.Authentication;
 @RestController
 @RequestMapping("/api/utilisateurs")
+@Tag(name = "Utilisateurs", description = "Gestion des comptes utilisateurs et profils")
 public class UtilisateurController {
 
     @Autowired
