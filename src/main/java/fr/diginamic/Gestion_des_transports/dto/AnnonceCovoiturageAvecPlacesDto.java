@@ -16,7 +16,6 @@ public record AnnonceCovoiturageAvecPlacesDto(
                 annonce,
                 placesTotales,
                 placesOccupees
-
         );
     }
 }

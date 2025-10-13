@@ -385,7 +385,32 @@ public class AnnonceCovoiturageService {
                 .toList();
     }
 
+    /**
+     * Récupère toutes les annonces de covoiturage où l'utilisateur est organisateur (conducteur)
+     * @param idUtilisateur l'ID de l'utilisateur connecté
+     * @return liste des annonces où l'utilisateur est responsable avec détails des places
+     */
+    public List<AnnonceCovoiturageAvecPlacesDto> obtenirAnnoncesOrganiseesParUtilisateur(Long idUtilisateur) {
+        // Récupérer l'utilisateur pour vérifier qu'il existe
+        Utilisateur utilisateur = utilisateurService.obtenirUtilisateurParId(idUtilisateur);
 
+        // Récupérer toutes les annonces où cet utilisateur est responsable
+        List<AnnonceCovoiturage> annoncesOrganisees = annonceCovoiturageRepository.findByResponsable(utilisateur);
+
+        if (annoncesOrganisees.isEmpty()) {
+            throw new IllegalArgumentException("Aucune annonce trouvée pour cet utilisateur");
+        }
+
+        return annoncesOrganisees.stream()
+                .map(annonce -> {
+                    AnnonceCovoiturageDto dto = annonceMapper.versDto(annonce);
+                    Integer placesTotales = obtenirNombrePlacesTotales(annonce.getId());
+                    Integer placesOccupees = obtenirNombrePlacesOccupees(annonce.getId());
+
+                    return AnnonceCovoiturageAvecPlacesDto.of(dto, placesTotales, placesOccupees);
+                })
+                .toList();
+    }
 
 
 
