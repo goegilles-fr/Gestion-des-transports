@@ -2,6 +2,7 @@ package fr.diginamic.Gestion_des_transports.services;
 
 import fr.diginamic.Gestion_des_transports.dto.AnnonceCovoiturageAvecPlacesDto;
 import fr.diginamic.Gestion_des_transports.dto.AnnonceCovoiturageDto;
+import fr.diginamic.Gestion_des_transports.dto.ParticipantsCovoiturageDto;
 import fr.diginamic.Gestion_des_transports.entites.*;
 import fr.diginamic.Gestion_des_transports.mapper.AnnonceCovoiturageMapper;
 import fr.diginamic.Gestion_des_transports.mapper.AdresseMapper;
@@ -412,6 +413,37 @@ public class AnnonceCovoiturageService {
                 .toList();
     }
 
+    /**
+     * Récupère les participants (conducteur et passagers) d'une annonce de covoiturage
+     * @param idAnnonce l'ID de l'annonce de covoiturage
+     * @return les participants du covoiturage
+     */
+    public ParticipantsCovoiturageDto obtenirParticipants(Long idAnnonce) {
+        // Vérifier que l'annonce existe
+        AnnonceCovoiturage annonce = annonceCovoiturageRepository.findById(idAnnonce)
+                .orElseThrow(() -> new IllegalArgumentException("Annonce de covoiturage introuvable"));
 
+        // Extraire le conducteur
+        Utilisateur responsable = annonce.getResponsable();
+        ParticipantsCovoiturageDto.PersonneDto conducteur =
+                ParticipantsCovoiturageDto.PersonneDto.of(
+                        responsable.getNom(),
+                        responsable.getPrenom()
+                );
+
+        // Extraire les passagers
+        List<CovoituragePassagers> covoituragePassagers =
+                covoituragePassagersRepository.findByAnnonceCovoiturageId(idAnnonce);
+
+        List<ParticipantsCovoiturageDto.PersonneDto> passagers = covoituragePassagers.stream()
+                .map(cp -> ParticipantsCovoiturageDto.PersonneDto.of(
+                        cp.getUtilisateur().getNom(),
+                        cp.getUtilisateur().getPrenom()
+                ))
+                .toList();
+
+        // Construire et retourner le DTO
+        return ParticipantsCovoiturageDto.of(conducteur, passagers);
+    }
 
 }

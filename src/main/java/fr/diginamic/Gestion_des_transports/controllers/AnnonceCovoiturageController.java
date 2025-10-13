@@ -2,6 +2,7 @@ package fr.diginamic.Gestion_des_transports.controllers;
 
 import fr.diginamic.Gestion_des_transports.dto.AnnonceCovoiturageAvecPlacesDto;
 import fr.diginamic.Gestion_des_transports.dto.AnnonceCovoiturageDto;
+import fr.diginamic.Gestion_des_transports.dto.ParticipantsCovoiturageDto;
 import fr.diginamic.Gestion_des_transports.entites.Utilisateur;
 import fr.diginamic.Gestion_des_transports.services.AnnonceCovoiturageService;
 import fr.diginamic.Gestion_des_transports.services.UtilisateurService;
@@ -273,6 +274,27 @@ public class AnnonceCovoiturageController {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Récupère les participants (conducteur et passagers) d'une annonce de covoiturage
+     * @param id l'ID de l'annonce
+     * @return les participants du covoiturage
+     */
+    @GetMapping("/{id}/participants")
+    @Operation(
+            summary = "Récupérer les participants d'un covoiturage",
+            description = "Retourne le conducteur et la liste des passagers pour une annonce donnée"
+    )
+    public ResponseEntity<?> obtenirParticipants(@PathVariable Long id) {
+        try {
+            ParticipantsCovoiturageDto participants = annonceCovoiturageService.obtenirParticipants(id);
+            return ResponseEntity.ok(participants);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne: " + e.getMessage());
         }
     }
 
