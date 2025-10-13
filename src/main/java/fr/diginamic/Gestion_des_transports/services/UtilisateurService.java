@@ -348,8 +348,7 @@ public class UtilisateurService {
         tokensExpiration.put(token, System.currentTimeMillis() + 3600000);
 
         // Construire le lien de réinitialisation
-        String lienReinitialisation = urlBase + "/api/auth/reset-password?token=" + token;
-
+        String lienReinitialisation = urlBase + "/reset-password?token=" + token;
         // Envoyer l'email avec le lien
         emailSender.send(
                 email,
