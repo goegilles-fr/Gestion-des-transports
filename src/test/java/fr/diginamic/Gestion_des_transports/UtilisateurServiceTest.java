@@ -8,7 +8,7 @@ import fr.diginamic.Gestion_des_transports.enums.RoleEnum;
 import fr.diginamic.Gestion_des_transports.mapper.ModifierProfilMapper;
 import fr.diginamic.Gestion_des_transports.repositories.UtilisateurRepository;
 import fr.diginamic.Gestion_des_transports.services.AdresseService;
-import fr.diginamic.Gestion_des_transports.services.UtilisateurService;
+import fr.diginamic.Gestion_des_transports.services.impl.UtilisateurServiceImpl;
 import fr.diginamic.Gestion_des_transports.tools.EmailSender;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -48,7 +48,7 @@ public class UtilisateurServiceTest {
     private ModifierProfilMapper modifierProfilMapper;
 
     @InjectMocks
-    private UtilisateurService utilisateurService;
+    private UtilisateurServiceImpl utilisateurService;
 
     private Utilisateur utilisateurFactice;
     private Adresse adresseFactice;

@@ -1,7 +1,7 @@
 package fr.diginamic.Gestion_des_transports;
 import fr.diginamic.Gestion_des_transports.entites.Adresse;
 import fr.diginamic.Gestion_des_transports.repositories.AdresseRepository;
-import fr.diginamic.Gestion_des_transports.services.AdresseService;
+import fr.diginamic.Gestion_des_transports.services.impl.AdresseServiceImpl;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -25,7 +25,7 @@ public class AdresseServiceTest {
     private AdresseRepository adresseRepository;
 
     @InjectMocks
-    private AdresseService adresseService;
+    private AdresseServiceImpl adresseService;
 
     private Adresse adresseTest;
 

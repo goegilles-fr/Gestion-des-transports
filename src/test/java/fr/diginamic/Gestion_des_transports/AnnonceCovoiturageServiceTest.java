@@ -9,8 +9,8 @@ import fr.diginamic.Gestion_des_transports.enums.StatutVehicule;
 import fr.diginamic.Gestion_des_transports.mapper.AdresseMapper;
 import fr.diginamic.Gestion_des_transports.mapper.AnnonceCovoiturageMapper;
 import fr.diginamic.Gestion_des_transports.repositories.*;
-import fr.diginamic.Gestion_des_transports.services.AnnonceCovoiturageService;
 import fr.diginamic.Gestion_des_transports.services.UtilisateurService;
+import fr.diginamic.Gestion_des_transports.services.impl.AnnonceCovoiturageServiceImpl;
 import fr.diginamic.Gestion_des_transports.tools.EmailSender;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -55,7 +55,7 @@ public class AnnonceCovoiturageServiceTest {
 
     @Spy
     @InjectMocks
-    AnnonceCovoiturageService service;
+    AnnonceCovoiturageServiceImpl service;
 
     private Utilisateur responsable;
     private Utilisateur user;
