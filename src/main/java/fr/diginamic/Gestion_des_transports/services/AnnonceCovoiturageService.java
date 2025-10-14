@@ -2,6 +2,7 @@ package fr.diginamic.Gestion_des_transports.services;
 
 import fr.diginamic.Gestion_des_transports.dto.AnnonceCovoiturageAvecPlacesDto;
 import fr.diginamic.Gestion_des_transports.dto.AnnonceCovoiturageDto;
+import fr.diginamic.Gestion_des_transports.dto.ParticipantsCovoiturageDto;
 
 import java.util.List;
 
@@ -35,4 +36,8 @@ public interface AnnonceCovoiturageService  {
 
 
     List<AnnonceCovoiturageAvecPlacesDto> obtenirReservationsUtilisateur(Long idUtilisateur);
+
+    ParticipantsCovoiturageDto obtenirParticipants(Long id);
+
+    List<AnnonceCovoiturageAvecPlacesDto> obtenirAnnoncesOrganiseesParUtilisateur(Long id);
 }

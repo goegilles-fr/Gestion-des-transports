@@ -2,6 +2,7 @@ package fr.diginamic.Gestion_des_transports.services.impl;
 
 import fr.diginamic.Gestion_des_transports.dto.AnnonceCovoiturageAvecPlacesDto;
 import fr.diginamic.Gestion_des_transports.dto.AnnonceCovoiturageDto;
+import fr.diginamic.Gestion_des_transports.dto.ParticipantsCovoiturageDto;
 import fr.diginamic.Gestion_des_transports.entites.*;
 import fr.diginamic.Gestion_des_transports.mapper.AnnonceCovoiturageMapper;
 import fr.diginamic.Gestion_des_transports.mapper.AdresseMapper;
@@ -378,7 +379,65 @@ public class AnnonceCovoiturageServiceImpl implements AnnonceCovoiturageService 
                 .toList();
     }
 
+    /**
+     * Récupère toutes les annonces de covoiturage où l'utilisateur est organisateur (conducteur)
+     * @param idUtilisateur l'ID de l'utilisateur connecté
+     * @return liste des annonces où l'utilisateur est responsable avec détails des places
+     */
+    public List<AnnonceCovoiturageAvecPlacesDto> obtenirAnnoncesOrganiseesParUtilisateur(Long idUtilisateur) {
+        // Récupérer l'utilisateur pour vérifier qu'il existe
+        Utilisateur utilisateur = utilisateurService.obtenirUtilisateurParId(idUtilisateur);
 
+        // Récupérer toutes les annonces où cet utilisateur est responsable
+        List<AnnonceCovoiturage> annoncesOrganisees = annonceCovoiturageRepository.findByResponsable(utilisateur);
+
+        if (annoncesOrganisees.isEmpty()) {
+            throw new IllegalArgumentException("Aucune annonce trouvée pour cet utilisateur");
+        }
+
+        return annoncesOrganisees.stream()
+                .map(annonce -> {
+                    AnnonceCovoiturageDto dto = annonceMapper.versDto(annonce);
+                    Integer placesTotales = obtenirNombrePlacesTotales(annonce.getId());
+                    Integer placesOccupees = obtenirNombrePlacesOccupees(annonce.getId());
+
+                    return AnnonceCovoiturageAvecPlacesDto.of(dto, placesTotales, placesOccupees);
+                })
+                .toList();
+    }
+
+    /**
+     * Récupère les participants (conducteur et passagers) d'une annonce de covoiturage
+     * @param idAnnonce l'ID de l'annonce de covoiturage
+     * @return les participants du covoiturage
+     */
+    public ParticipantsCovoiturageDto obtenirParticipants(Long idAnnonce) {
+        // Vérifier que l'annonce existe
+        AnnonceCovoiturage annonce = annonceCovoiturageRepository.findById(idAnnonce)
+                .orElseThrow(() -> new IllegalArgumentException("Annonce de covoiturage introuvable"));
+
+        // Extraire le conducteur
+        Utilisateur responsable = annonce.getResponsable();
+        ParticipantsCovoiturageDto.PersonneDto conducteur =
+                ParticipantsCovoiturageDto.PersonneDto.of(
+                        responsable.getNom(),
+                        responsable.getPrenom()
+                );
+
+        // Extraire les passagers
+        List<CovoituragePassagers> covoituragePassagers =
+                covoituragePassagersRepository.findByAnnonceCovoiturageId(idAnnonce);
+
+        List<ParticipantsCovoiturageDto.PersonneDto> passagers = covoituragePassagers.stream()
+                .map(cp -> ParticipantsCovoiturageDto.PersonneDto.of(
+                        cp.getUtilisateur().getNom(),
+                        cp.getUtilisateur().getPrenom()
+                ))
+                .toList();
+
+        // Construire et retourner le DTO
+        return ParticipantsCovoiturageDto.of(conducteur, passagers);
+    }
     private Adresse gererAdresse(fr.diginamic.Gestion_des_transports.dto.AdresseDto adresseDto) {
         if (adresseDto.id() != null) {
             // Si l'adresse a un ID, la récupérer depuis la base

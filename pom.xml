@@ -172,6 +172,19 @@
                         <goals>
                             <goal>report</goal>
                         </goals>
+                        <configuration>
+                            <excludes>
+                                <exclude>**/mapper/**</exclude>
+                                <exclude>**/controllers/**</exclude>
+                                <exclude>**/config/**</exclude>
+                                <exclude>**/dto/**</exclude>
+                                <exclude>**/security/**</exclude>
+                                <exclude>**/shared/**</exclude>
+                                <exclude>**/EmailSender.class/**</exclude>
+                                <exclude>**/GestionDesTransportsApplication.class/**</exclude>
+
+                            </excludes>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

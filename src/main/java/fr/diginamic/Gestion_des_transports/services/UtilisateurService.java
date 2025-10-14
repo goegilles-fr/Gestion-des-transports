@@ -44,4 +44,10 @@ public interface UtilisateurService {
     List<Utilisateur> obtenirTousLesUtilisateurs();
 
     Utilisateur modifierProfilUtilisateur(String emailUtilisateur, ModifierProfilDto modifierProfilDto);
+
+    void changerMotDePasse(String emailUtilisateur, String newpassword);
+
+    void demanderReinitialisationMotDePasse(String email);
+
+    void reinitialiserMotDePasseAvecToken(String token);
 }
