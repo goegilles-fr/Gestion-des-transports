@@ -49,23 +49,8 @@ public class AdresseService {
         return adresse.orElse(null);
     }
 
-    /**
-     * Rechercher des adresses par ville
-     * @param ville La ville à rechercher
-     * @return Liste des adresses dans cette ville
-     */
 
 
-    /**
-     * Rechercher des adresses par code postal
-     * @param codePostal Le code postal à rechercher
-     * @return Liste des adresses avec ce code postal
-     */
-    @Transactional(readOnly = true)
-    public List<Adresse> rechercherParCodePostal(String codePostal) {
-        // Vous devrez ajouter cette méthode au repository
-        return adresseRepository.findByCodePostal(codePostal);
-    }
 
     /**
      * Mettre à jour une adresse existante
