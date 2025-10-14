@@ -1,4 +1,4 @@
-FROM openjdk:17-jdk-slim
+FROM FROM eclipse-temurin:21-jdk-alpine
 
 # Set working directory
 WORKDIR /app
