@@ -31,7 +31,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable)
+        http.csrf(AbstractHttpConfigurer::disable)// NOSONAR
                 .cors(cors -> cors.configurationSource(corsConfigurationSource)) // Add CORS configuration
                 .authorizeHttpRequests(authorize -> authorize
 

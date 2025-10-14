@@ -229,7 +229,7 @@ public class AnnonceCovoiturageServiceImpl implements AnnonceCovoiturageService 
      */
     @Override
     public AnnonceCovoiturageDto obtenirAnnonceParId(Long idAnnonce) {
-        AnnonceCovoiturage annonce = annonceCovoiturageRepository.findById(idAnnonce.longValue())
+        AnnonceCovoiturage annonce = annonceCovoiturageRepository.findById(idAnnonce)
                 .orElseThrow(() -> new IllegalArgumentException("Annonce de covoiturage introuvable avec l'ID: " + idAnnonce));
 
         return annonceMapper.versDto(annonce);

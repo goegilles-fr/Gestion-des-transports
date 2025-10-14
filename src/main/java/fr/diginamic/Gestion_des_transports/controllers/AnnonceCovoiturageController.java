@@ -22,7 +22,6 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/covoit")
-@CrossOrigin(origins = "*")
 @Tag(name = "Annonces de covoiturage", description = "Gestion des annonces de covoiturage et des réservations")
 public class AnnonceCovoiturageController {
 
