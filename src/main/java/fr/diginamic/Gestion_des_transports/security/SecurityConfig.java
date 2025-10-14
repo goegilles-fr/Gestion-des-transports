@@ -37,7 +37,7 @@ public class SecurityConfig {
 
                         // API Auth endpoints
                         .requestMatchers("/api/auth/**").permitAll()
-
+                        .requestMatchers("/api/utilisateurs/passwordreset").permitAll()
                         // Swagger
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()
 

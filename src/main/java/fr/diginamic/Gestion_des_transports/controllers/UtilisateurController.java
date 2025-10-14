@@ -10,6 +10,7 @@ import fr.diginamic.Gestion_des_transports.mapper.VehiculeMapper;
 import fr.diginamic.Gestion_des_transports.services.UtilisateurService;
 import fr.diginamic.Gestion_des_transports.enums.RoleEnum;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 import org.springframework.security.core.Authentication;
 @RestController
 @RequestMapping("/api/utilisateurs")
+@Tag(name = "Utilisateurs", description = "Gestion des comptes utilisateurs et profils")
 public class UtilisateurController {
 
     @Autowired
@@ -48,9 +50,69 @@ public class UtilisateurController {
 
         return ResponseEntity.ok(utilisateursDto);
     }
+    /**
+     * Demande de réinitialisation de mot de passe
+     * Envoie un email avec un lien de réinitialisation
+     *
+     * @param emailRequest Map contenant l'email
+     * @return ResponseEntity avec message de confirmation
+     *
+     * POST /api/utilisateurs/passwordreset
+     * Body: {"email": "user@example.com"}
+     */
+    @PostMapping("/passwordreset")
+    @Operation(summary = "Demander la réinitialisation du mot de passe par email")
+    public ResponseEntity<?> demanderReinitialisationMotDePasse(@RequestBody Map<String, String> emailRequest) {
+        try {
+            String email = emailRequest.get("email");
+            utilisateurService.demanderReinitialisationMotDePasse(email);
 
+            Map<String, String> reponse = new HashMap<>();
+            reponse.put("message", "Un lien de réinitialisation a été envoyé à votre email");
+            return ResponseEntity.ok(reponse);
 
+        } catch (RuntimeException e) {
+            Map<String, String> erreur = new HashMap<>();
+            erreur.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erreur);
+        }
+    }
 
+    /**
+     * Changement de mot de passe pour l'utilisateur connecté
+     * Utilise le token JWT pour identifier l'utilisateur
+     *
+     * @param authentication L'authentification JWT
+     * @param requestBody Map contenant le nouveau mot de passe
+     * @return ResponseEntity avec message de confirmation
+     *
+     * PUT api/auth/changepassword
+     * Body: {"newpassword": "monNouveauMotDePasse123"}
+     */
+    @PutMapping("/changepassword")
+    @Operation(summary = "Changer son mot de passe (authentification requise)")
+    public ResponseEntity<?> changerMotDePasse(
+            Authentication authentication,
+            @RequestBody Map<String, String> requestBody) {
+        try {
+            // Récupérer l'email de l'utilisateur connecté depuis le token JWT
+            String emailUtilisateur = authentication.getName();
+
+            String newpassword = requestBody.get("newpassword");
+
+            // Appeler le service pour changer le mot de passe
+            utilisateurService.changerMotDePasse(emailUtilisateur, newpassword);
+
+            Map<String, String> reponse = new HashMap<>();
+            reponse.put("message", "Votre mot de passe a été modifié avec succès");
+            return ResponseEntity.ok(reponse);
+
+        } catch (RuntimeException e) {
+            Map<String, String> erreur = new HashMap<>();
+            erreur.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erreur);
+        }
+    }
     /**
      * Endpoint for getting a user by ID.
      * Accessible at GET /api/utilisateurs/{id}
@@ -298,4 +360,6 @@ public class UtilisateurController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erreur);
         }
     }
+
+
 }
