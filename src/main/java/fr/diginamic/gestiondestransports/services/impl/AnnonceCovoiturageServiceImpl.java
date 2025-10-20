@@ -298,7 +298,7 @@ public class AnnonceCovoiturageServiceImpl implements AnnonceCovoiturageService 
         }
 
         // Vérifier s'il reste des places disponibles
-        Integer placesTotales = obtenirNombrePlacesTotales(idAnnonce);
+        Integer placesTotales = obtenirNombrePlacesTotales(idAnnonce)-1;
         Integer placesOccupees = obtenirNombrePlacesOccupees(idAnnonce);
 
         if (placesOccupees >= placesTotales) {

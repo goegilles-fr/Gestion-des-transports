@@ -18,7 +18,7 @@ public abstract class Vehicule {
     @Column(name = "immatriculation", unique = true)
     private String immatriculation;
 
-    @Min(1)
+    @Min(2)
     @Column(name = "nb_places")
     private Integer nbPlaces;
 
