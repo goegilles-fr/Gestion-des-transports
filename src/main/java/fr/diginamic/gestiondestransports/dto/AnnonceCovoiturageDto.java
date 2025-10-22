@@ -14,12 +14,12 @@ public record AnnonceCovoiturageDto(
         @Future(message = "L'heure de départ doit être dans le futur")
         LocalDateTime heureDepart,
 
-        @NotNull(message = "La durée du trajet est obligatoire")
+        //@NotNull(message = "La durée du trajet est obligatoire")
         @Min(value = 1, message = "La durée du trajet doit être d'au moins 1 minute")
         @Max(value = 1440, message = "La durée du trajet ne peut pas dépasser 24 heures")
         Integer dureeTrajet,
 
-        @NotNull(message = "La distance est obligatoire")
+        //@NotNull(message = "La distance est obligatoire")
         @Min(value = 1, message = "La distance doit être d'au moins 1 km")
         @Max(value = 2000, message = "La distance ne peut pas dépasser 2000 km")
         Integer distance,
