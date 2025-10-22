@@ -10,6 +10,7 @@ import fr.diginamic.gestiondestransports.repositories.*;
 import fr.diginamic.gestiondestransports.services.AnnonceCovoiturageService;
 import fr.diginamic.gestiondestransports.services.UtilisateurService;
 import fr.diginamic.gestiondestransports.tools.EmailSender;
+import fr.diginamic.gestiondestransports.tools.OsmApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,7 +34,8 @@ public class AnnonceCovoiturageServiceImpl implements AnnonceCovoiturageService 
     private final AnnonceCovoiturageMapper annonceMapper;
     private final AdresseMapper adresseMapper;
     private final UtilisateurService utilisateurService;
-
+    private final OsmApi osmApi;
+    private final boolean apiDebug=false;
     @Autowired
     private EmailSender emailSender;
 
@@ -45,8 +47,9 @@ public class AnnonceCovoiturageServiceImpl implements AnnonceCovoiturageService 
             AnnonceCovoiturageMapper annonceMapper,
             AdresseMapper adresseMapper,
             UtilisateurService utilisateurService,
-            CovoituragePassagersRepository covoituragePassagersRepository,  // Add this
-            VehiculePersonnelRepository vehiculePersonnelRepository) {
+            CovoituragePassagersRepository covoituragePassagersRepository,
+            VehiculePersonnelRepository vehiculePersonnelRepository,
+            OsmApi osmApi) {
         this.annonceCovoiturageRepository = annonceCovoiturageRepository;
         this.vehiculeEntrepriseRepository = vehiculeEntrepriseRepository;
         this.adresseRepository = adresseRepository;
@@ -55,6 +58,7 @@ public class AnnonceCovoiturageServiceImpl implements AnnonceCovoiturageService 
         this.utilisateurService = utilisateurService;
         this.covoituragePassagersRepository = covoituragePassagersRepository;
         this.vehiculePersonnelRepository = vehiculePersonnelRepository;
+        this.osmApi = osmApi;
     }
 
     /**
@@ -103,12 +107,41 @@ public class AnnonceCovoiturageServiceImpl implements AnnonceCovoiturageService 
         }
 
 
+        // ═══════════════════════════════════════════════════════════
+        //  APPEL À L'API OSM SI NÉCESSAIRE
+        // ═══════════════════════════════════════════════════════════
+
+
+        boolean besoinEnrichissement = (annonceDto.distance() == null || annonceDto.distance() == 0 ||
+                annonceDto.dureeTrajet() == null || annonceDto.dureeTrajet() == 0);
+
+        if (besoinEnrichissement) {
+            if (apiDebug)System.out.println("\nDistance ou durée manquante, enrichissement via OSM API...");
+            boolean enrichissementReussi = osmApi.enrichirAnnonceAvecItineraire(nouvelleAnnonce);
+
+            if (enrichissementReussi) {
+                if (apiDebug)System.out.println("✅ L'annonce a été enrichie avec succès !");
+                if (apiDebug)System.out.println("   📏 Distance : " + nouvelleAnnonce.getDistance() + " km");
+                if (apiDebug) System.out.println("   ⏱️  Durée : " + nouvelleAnnonce.getDureeTrajet() + " minutes");
+            } else {
+                if (apiDebug)System.out.println("⚠️  L'enrichissement a échoué, impossible de calculer l'itinéraire");
+                throw new IllegalArgumentException("Impossible de calculer la distance et la durée. Veuillez les saisir manuellement.");
+            }
+        } else {
+            if (apiDebug) System.out.println("\n✓ Distance et durée fournies par l'utilisateur, pas d'appel OSM API");
+            if (apiDebug) System.out.println("   📏 Distance : " + nouvelleAnnonce.getDistance() + " km");
+            if (apiDebug) System.out.println("   ⏱️  Durée : " + nouvelleAnnonce.getDureeTrajet() + " minutes");
+        }
+
+
 
         // Sauvegarder l'annonce
         AnnonceCovoiturage annonceSauvegardee = annonceCovoiturageRepository.save(nouvelleAnnonce);
 
         // Retourner le DTO de l'annonce créée
         return annonceMapper.versDto(annonceSauvegardee);
+
+
     }
 
     /**
