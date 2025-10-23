@@ -36,7 +36,7 @@
             **/security/**,
             **/shared/**,
             **/EmailSender.java,
-            **/OsmApi.class.java,
+            **/OsmApi.java,
             **/GestionDesTransportsApplication.java
         </sonar.coverage.exclusions>
         <sonar.exclusions>
@@ -47,7 +47,7 @@
             **/security/**,
             **/shared/**,
             **/EmailSender.java,
-            **/OsmApi.class.java,
+            **/OsmApi.java,
             **/GestionDesTransportsApplication.java
         </sonar.exclusions>
     </properties>
