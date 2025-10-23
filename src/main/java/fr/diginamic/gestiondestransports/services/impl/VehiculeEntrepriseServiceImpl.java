@@ -84,8 +84,6 @@ public class VehiculeEntrepriseServiceImpl implements VehiculeEntrepriseService 
 
                     isAvailable = false;
                     break;
-                } else {
-
                 }
             }
 

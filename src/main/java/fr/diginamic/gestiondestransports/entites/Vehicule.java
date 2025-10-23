@@ -48,7 +48,7 @@ public abstract class Vehicule {
 
 
     // Default constructor
-    public Vehicule() {}
+    protected  Vehicule() {}
 
     public Vehicule(Long id, String immatriculation, Integer nbPlaces, String modele, Integer co2ParKm, String photo, String marque, Motorisation motorisation, Categorie categorie) {
         this.id = id;

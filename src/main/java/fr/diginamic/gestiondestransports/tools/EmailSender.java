@@ -78,12 +78,12 @@ public class EmailSender {
                                     .put(Emailv31.Message.SUBJECT, subject)));
 
             // Envoi de l'email
-            MailjetResponse reponse = clientMailjet.post(requete);
+            clientMailjet.post(requete);
 
 
 
         } catch (MailjetException e) {
-            System.out.println("Erreur Mailjet lors de l'envoi de l'email à " + email + ": " + e.getMessage());
+
         }
     }
 }

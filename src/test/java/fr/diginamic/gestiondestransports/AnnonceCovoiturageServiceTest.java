@@ -950,4 +950,179 @@ public class AnnonceCovoiturageServiceTest {
         verify(service, never()).obtenirNombrePlacesTotales(anyLong());
         verify(service, never()).obtenirNombrePlacesOccupees(anyLong());
     }
+    @Test
+    @DisplayName("obtenirParticipants → OK : retourne conducteur et passagers")
+    void obtenirParticipants_ok() {
+        // Arrange
+        Utilisateur conducteur = new Utilisateur("Martin", "Sophie", "sophie@mail.com", RoleEnum.ROLE_USER);
+        conducteur.setId(1L);
+
+        Utilisateur passager1 = new Utilisateur("Bernard", "Pierre", "pierre@mail.com", RoleEnum.ROLE_USER);
+        passager1.setId(2L);
+
+        Utilisateur passager2 = new Utilisateur("Durand", "Marie", "marie@mail.com", RoleEnum.ROLE_USER);
+        passager2.setId(3L);
+
+        annonceExistante.setResponsable(conducteur);
+
+        CovoituragePassagers cp1 = new CovoituragePassagers(passager1, annonceExistante);
+        CovoituragePassagers cp2 = new CovoituragePassagers(passager2, annonceExistante);
+
+        when(annonceCovoiturageRepository.findById(idAnnonce)).thenReturn(Optional.of(annonceExistante));
+        when(covoituragePassagersRepository.findByAnnonceCovoiturageId(idAnnonce))
+                .thenReturn(List.of(cp1, cp2));
+
+        // Act
+        var resultat = service.obtenirParticipants(idAnnonce);
+
+        // Assert
+        assertNotNull(resultat);
+        assertNotNull(resultat.conducteur());
+        assertEquals("Martin", resultat.conducteur().nom());
+        assertEquals("Sophie", resultat.conducteur().prenom());
+        assertNotNull(resultat.passagers());
+        assertEquals(2, resultat.passagers().size());
+        assertEquals("Bernard", resultat.passagers().get(0).nom());
+        assertEquals("Pierre", resultat.passagers().get(0).prenom());
+        assertEquals("Durand", resultat.passagers().get(1).nom());
+        assertEquals("Marie", resultat.passagers().get(1).prenom());
+
+        verify(annonceCovoiturageRepository).findById(idAnnonce);
+        verify(covoituragePassagersRepository).findByAnnonceCovoiturageId(idAnnonce);
+        verifyNoMoreInteractions(annonceCovoiturageRepository, covoituragePassagersRepository);
+    }
+
+    @Test
+    @DisplayName("obtenirParticipants → OK : retourne conducteur sans passagers")
+    void obtenirParticipants_sans_passagers() {
+        // Arrange
+        Utilisateur conducteur = new Utilisateur("Martin", "Sophie", "sophie@mail.com", RoleEnum.ROLE_USER);
+        conducteur.setId(1L);
+
+        annonceExistante.setResponsable(conducteur);
+
+        when(annonceCovoiturageRepository.findById(idAnnonce)).thenReturn(Optional.of(annonceExistante));
+        when(covoituragePassagersRepository.findByAnnonceCovoiturageId(idAnnonce))
+                .thenReturn(List.of());
+
+        // Act
+        var resultat = service.obtenirParticipants(idAnnonce);
+
+        // Assert
+        assertNotNull(resultat);
+        assertNotNull(resultat.conducteur());
+        assertEquals("Martin", resultat.conducteur().nom());
+        assertEquals("Sophie", resultat.conducteur().prenom());
+        assertNotNull(resultat.passagers());
+        assertTrue(resultat.passagers().isEmpty());
+
+        verify(annonceCovoiturageRepository).findById(idAnnonce);
+        verify(covoituragePassagersRepository).findByAnnonceCovoiturageId(idAnnonce);
+        verifyNoMoreInteractions(annonceCovoiturageRepository, covoituragePassagersRepository);
+    }
+
+    @Test
+    @DisplayName("obtenirParticipants → KO : annonce introuvable")
+    void obtenirParticipants_ko_annonce_introuvable() {
+        // Arrange
+        when(annonceCovoiturageRepository.findById(idAnnonce)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> service.obtenirParticipants(idAnnonce));
+        assertTrue(ex.getMessage().toLowerCase().contains("introuvable"));
+
+        verify(annonceCovoiturageRepository).findById(idAnnonce);
+        verifyNoInteractions(covoituragePassagersRepository);
+    }
+
+    @Test
+    @DisplayName("obtenirAnnoncesOrganiseesParUtilisateur → OK : mappe chaque annonce et annote avec places totales/occupées")
+    void obtenirAnnoncesOrganiseesParUtilisateur_ok() {
+        // Arrange
+        when(utilisateurService.obtenirUtilisateurParId(idResponsable)).thenReturn(responsable);
+
+        // Deux annonces organisées par le responsable
+        AnnonceCovoiturage a1 = new AnnonceCovoiturage();
+        a1.setId(10L);
+        AnnonceCovoiturage a2 = new AnnonceCovoiturage();
+        a2.setId(20L);
+
+        when(annonceCovoiturageRepository.findByResponsable(responsable))
+                .thenReturn(List.of(a1, a2));
+
+        // Mapping entité -> DTO
+        var dep = new AdresseDto(null, 1, "rue A", "34000", "Montpellier");
+        var arr = new AdresseDto(null, 2, "rue B", "44000", "Nantes");
+        var dto1 = AnnonceCovoiturageDto.of(10L, LocalDateTime.now().plusDays(1), 30, 10, dep, arr, null);
+        var dto2 = AnnonceCovoiturageDto.of(20L, LocalDateTime.now().plusDays(2), 45, 12, dep, arr, 7L);
+        when(annonceMapper.versDto(a1)).thenReturn(dto1);
+        when(annonceMapper.versDto(a2)).thenReturn(dto2);
+
+        // Helpers internes (stub via Spy)
+        doReturn(4).when(service).obtenirNombrePlacesTotales(10L);
+        doReturn(2).when(service).obtenirNombrePlacesOccupees(10L);
+        doReturn(5).when(service).obtenirNombrePlacesTotales(20L);
+        doReturn(3).when(service).obtenirNombrePlacesOccupees(20L);
+
+        // Act
+        List<AnnonceCovoiturageAvecPlacesDto> out = service.obtenirAnnoncesOrganiseesParUtilisateur(idResponsable);
+
+        // Assert
+        var expected = List.of(
+                AnnonceCovoiturageAvecPlacesDto.of(dto1, 4, 2),
+                AnnonceCovoiturageAvecPlacesDto.of(dto2, 5, 3)
+        );
+        assertEquals(expected, out);
+
+        verify(utilisateurService).obtenirUtilisateurParId(idResponsable);
+        verify(annonceCovoiturageRepository).findByResponsable(responsable);
+        verify(annonceMapper).versDto(a1);
+        verify(annonceMapper).versDto(a2);
+        verify(service).obtenirNombrePlacesTotales(10L);
+        verify(service).obtenirNombrePlacesOccupees(10L);
+        verify(service).obtenirNombrePlacesTotales(20L);
+        verify(service).obtenirNombrePlacesOccupees(20L);
+        verifyNoMoreInteractions(annonceCovoiturageRepository, annonceMapper, utilisateurService);
+    }
+
+    @Test
+    @DisplayName("obtenirAnnoncesOrganiseesParUtilisateur → KO : aucune annonce trouvée pour cet utilisateur")
+    void obtenirAnnoncesOrganiseesParUtilisateur_ko_aucune_annonce() {
+        // Arrange
+        when(utilisateurService.obtenirUtilisateurParId(idResponsable)).thenReturn(responsable);
+        when(annonceCovoiturageRepository.findByResponsable(responsable))
+                .thenReturn(List.of()); // vide
+
+        // Act & Assert
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> service.obtenirAnnoncesOrganiseesParUtilisateur(idResponsable));
+        String msg = ex.getMessage().toLowerCase();
+        assertTrue(msg.contains("aucune annonce"), msg);
+
+        verify(utilisateurService).obtenirUtilisateurParId(idResponsable);
+        verify(annonceCovoiturageRepository).findByResponsable(responsable);
+        // Pas d'appels aux helpers ni au mapper
+        verifyNoInteractions(annonceMapper);
+        verify(service, never()).obtenirNombrePlacesTotales(anyLong());
+        verify(service, never()).obtenirNombrePlacesOccupees(anyLong());
+    }
+
+    @Test
+    @DisplayName("obtenirAnnoncesOrganiseesParUtilisateur → KO : utilisateur introuvable")
+    void obtenirAnnoncesOrganiseesParUtilisateur_ko_utilisateur_introuvable() {
+        // Arrange
+        when(utilisateurService.obtenirUtilisateurParId(999L))
+                .thenThrow(new RuntimeException("Utilisateur non trouvé"));
+
+        // Act & Assert
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> service.obtenirAnnoncesOrganiseesParUtilisateur(999L));
+        assertEquals("Utilisateur non trouvé", ex.getMessage());
+
+        verify(utilisateurService).obtenirUtilisateurParId(999L);
+        verifyNoInteractions(annonceCovoiturageRepository, annonceMapper);
+    }
+
+
 }
