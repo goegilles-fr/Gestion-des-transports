@@ -614,4 +614,418 @@ public class UtilisateurServiceTest {
         assertEquals("Utilisateur non trouvé avec email: inconnu@example.com", exception.getMessage());
         verify(utilisateurRepository, never()).save(any(Utilisateur.class));
     }
+
+    @Test
+    void demanderReinitialisationMotDePasse_ShouldSendResetEmailSuccessfully() {
+        // Arrange
+        String email = "jean.dupont@example.com";
+        when(utilisateurRepository.findByEmail(email)).thenReturn(Optional.of(utilisateurFactice));
+        doNothing().when(emailSender).send(anyString(), anyString(), anyString(), anyString());
+
+        // Act
+        utilisateurService.demanderReinitialisationMotDePasse(email);
+
+        // Assert
+        verify(utilisateurRepository, times(1)).findByEmail(email);
+        verify(emailSender, times(1)).send(
+                eq(email),
+                anyString(),
+                anyString(),
+                eq("Réinitialisation de mot de passe")
+        );
+    }
+    @Test
+    void demanderReinitialisationMotDePasse_ShouldThrowExceptionWhenEmailIsNull() {
+        // Arrange
+        String email = null;
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> utilisateurService.demanderReinitialisationMotDePasse(email));
+
+        assertEquals("L'email est requis", exception.getMessage());
+        verify(utilisateurRepository, never()).findByEmail(anyString());
+        verify(emailSender, never()).send(anyString(), anyString(), anyString(), anyString());
+    }
+
+    @Test
+    void demanderReinitialisationMotDePasse_ShouldThrowExceptionWhenEmailIsEmpty() {
+        // Arrange
+        String email = "   ";
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> utilisateurService.demanderReinitialisationMotDePasse(email));
+
+        assertEquals("L'email est requis", exception.getMessage());
+        verify(utilisateurRepository, never()).findByEmail(anyString());
+    }
+
+    @Test
+    void demanderReinitialisationMotDePasse_ShouldThrowExceptionWhenUserNotFound() {
+        // Arrange
+        String email = "inconnu@example.com";
+        when(utilisateurRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> utilisateurService.demanderReinitialisationMotDePasse(email));
+
+        assertEquals("Aucun utilisateur trouvé avec cet email", exception.getMessage());
+        verify(utilisateurRepository, times(1)).findByEmail(email);
+        verify(emailSender, never()).send(anyString(), anyString(), anyString(), anyString());
+    }
+
+    @Test
+    void demanderReinitialisationMotDePasse_ShouldThrowExceptionWhenUserIsBanned() {
+        // Arrange
+        String email = "jean.dupont@example.com";
+        utilisateurFactice.setEstBanni(true);
+        when(utilisateurRepository.findByEmail(email)).thenReturn(Optional.of(utilisateurFactice));
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> utilisateurService.demanderReinitialisationMotDePasse(email));
+
+        assertEquals("Ce compte est banni", exception.getMessage());
+        verify(utilisateurRepository, times(1)).findByEmail(email);
+        verify(emailSender, never()).send(anyString(), anyString(), anyString(), anyString());
+    }
+
+    @Test
+    void demanderReinitialisationMotDePasse_ShouldThrowExceptionWhenUserIsDeleted() {
+        // Arrange
+        String email = "jean.dupont@example.com";
+        utilisateurFactice.setEstSupprime(true);
+        when(utilisateurRepository.findByEmail(email)).thenReturn(Optional.of(utilisateurFactice));
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> utilisateurService.demanderReinitialisationMotDePasse(email));
+
+        assertEquals("Ce compte a été supprimé", exception.getMessage());
+        verify(utilisateurRepository, times(1)).findByEmail(email);
+        verify(emailSender, never()).send(anyString(), anyString(), anyString(), anyString());
+    }
+    @Test
+    void reinitialiserMotDePasseAvecToken_ShouldResetPasswordSuccessfully() throws Exception {
+        // Arrange
+        String token = "valid-token-123";
+        String email = "jean.dupont@example.com";
+
+        // Access private fields using reflection
+        java.lang.reflect.Field tokensReinitialisationField = UtilisateurServiceImpl.class.getDeclaredField("tokensReinitialisation");
+        tokensReinitialisationField.setAccessible(true);
+        java.util.Map<String, String> tokensReinitialisation = (java.util.Map<String, String>) tokensReinitialisationField.get(utilisateurService);
+
+        java.lang.reflect.Field tokensExpirationField = UtilisateurServiceImpl.class.getDeclaredField("tokensExpiration");
+        tokensExpirationField.setAccessible(true);
+        java.util.Map<String, Long> tokensExpiration = (java.util.Map<String, Long>) tokensExpirationField.get(utilisateurService);
+
+        // Add valid token
+        tokensReinitialisation.put(token, email);
+        tokensExpiration.put(token, System.currentTimeMillis() + 3600000); // 1 hour from now
+
+        when(utilisateurRepository.findByEmail(email)).thenReturn(Optional.of(utilisateurFactice));
+        when(passwordEncoder.encode(anyString())).thenReturn("nouveauMotDePasseHache");
+        when(utilisateurRepository.save(any(Utilisateur.class))).thenReturn(utilisateurFactice);
+        doNothing().when(emailSender).send(anyString(), anyString(), anyString(), anyString());
+
+        // Act
+        utilisateurService.reinitialiserMotDePasseAvecToken(token);
+
+        // Assert
+        verify(utilisateurRepository, times(1)).findByEmail(email);
+        verify(passwordEncoder, times(1)).encode(anyString());
+        verify(utilisateurRepository, times(1)).save(any(Utilisateur.class));
+        verify(emailSender, times(1)).send(
+                eq(email),
+                anyString(),
+                anyString(),
+                eq("Nouveau mot de passe")
+        );
+
+        // Verify token was removed after use
+        assertFalse(tokensReinitialisation.containsKey(token));
+        assertFalse(tokensExpiration.containsKey(token));
+    }
+
+    @Test
+    void reinitialiserMotDePasseAvecToken_ShouldThrowExceptionWhenTokenIsNull() {
+        // Arrange
+        String token = null;
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> utilisateurService.reinitialiserMotDePasseAvecToken(token));
+
+        assertEquals("Token invalide", exception.getMessage());
+        verify(utilisateurRepository, never()).findByEmail(anyString());
+        verify(utilisateurRepository, never()).save(any(Utilisateur.class));
+    }
+
+    @Test
+    void reinitialiserMotDePasseAvecToken_ShouldThrowExceptionWhenTokenIsEmpty() {
+        // Arrange
+        String token = "   ";
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> utilisateurService.reinitialiserMotDePasseAvecToken(token));
+
+        assertEquals("Token invalide", exception.getMessage());
+        verify(utilisateurRepository, never()).findByEmail(anyString());
+    }
+
+    @Test
+    void reinitialiserMotDePasseAvecToken_ShouldThrowExceptionWhenTokenDoesNotExist() {
+        // Arrange
+        String token = "non-existent-token";
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> utilisateurService.reinitialiserMotDePasseAvecToken(token));
+
+        assertEquals("Token invalide ou déjà utilisé", exception.getMessage());
+        verify(utilisateurRepository, never()).findByEmail(anyString());
+    }
+
+    @Test
+    void reinitialiserMotDePasseAvecToken_ShouldThrowExceptionWhenTokenIsExpired() throws Exception {
+        // Arrange
+        String token = "expired-token";
+        String email = "jean.dupont@example.com";
+
+        // Access private fields using reflection
+        java.lang.reflect.Field tokensReinitialisationField = UtilisateurServiceImpl.class.getDeclaredField("tokensReinitialisation");
+        tokensReinitialisationField.setAccessible(true);
+        java.util.Map<String, String> tokensReinitialisation = (java.util.Map<String, String>) tokensReinitialisationField.get(utilisateurService);
+
+        java.lang.reflect.Field tokensExpirationField = UtilisateurServiceImpl.class.getDeclaredField("tokensExpiration");
+        tokensExpirationField.setAccessible(true);
+        java.util.Map<String, Long> tokensExpiration = (java.util.Map<String, Long>) tokensExpirationField.get(utilisateurService);
+
+        // Add expired token
+        tokensReinitialisation.put(token, email);
+        tokensExpiration.put(token, System.currentTimeMillis() - 1000); // Expired 1 second ago
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> utilisateurService.reinitialiserMotDePasseAvecToken(token));
+
+        assertEquals("Le token a expiré", exception.getMessage());
+        verify(utilisateurRepository, never()).findByEmail(anyString());
+        verify(utilisateurRepository, never()).save(any(Utilisateur.class));
+
+        // Verify expired token was cleaned up
+        assertFalse(tokensReinitialisation.containsKey(token));
+        assertFalse(tokensExpiration.containsKey(token));
+    }
+
+    @Test
+    void reinitialiserMotDePasseAvecToken_ShouldThrowExceptionWhenUserNotFound() throws Exception {
+        // Arrange
+        String token = "valid-token";
+        String email = "inconnu@example.com";
+
+        // Access private fields using reflection
+        java.lang.reflect.Field tokensReinitialisationField = UtilisateurServiceImpl.class.getDeclaredField("tokensReinitialisation");
+        tokensReinitialisationField.setAccessible(true);
+        java.util.Map<String, String> tokensReinitialisation = (java.util.Map<String, String>) tokensReinitialisationField.get(utilisateurService);
+
+        java.lang.reflect.Field tokensExpirationField = UtilisateurServiceImpl.class.getDeclaredField("tokensExpiration");
+        tokensExpirationField.setAccessible(true);
+        java.util.Map<String, Long> tokensExpiration = (java.util.Map<String, Long>) tokensExpirationField.get(utilisateurService);
+
+        // Add valid token
+        tokensReinitialisation.put(token, email);
+        tokensExpiration.put(token, System.currentTimeMillis() + 3600000);
+
+        when(utilisateurRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> utilisateurService.reinitialiserMotDePasseAvecToken(token));
+
+        assertEquals("Utilisateur non trouvé", exception.getMessage());
+        verify(utilisateurRepository, times(1)).findByEmail(email);
+        verify(utilisateurRepository, never()).save(any(Utilisateur.class));
+    }
+
+
+    @Test
+    void changerMotDePasse_ShouldChangePasswordSuccessfully() {
+        // Arrange
+        String email = "jean.dupont@example.com";
+        String nouveauMotDePasse = "nouveauPassword123";
+        when(utilisateurRepository.findByEmail(email)).thenReturn(Optional.of(utilisateurFactice));
+        when(passwordEncoder.encode(nouveauMotDePasse)).thenReturn("nouveauMotDePasseHache");
+        when(utilisateurRepository.save(any(Utilisateur.class))).thenReturn(utilisateurFactice);
+
+        // Act
+        utilisateurService.changerMotDePasse(email, nouveauMotDePasse);
+
+        // Assert
+        verify(utilisateurRepository, times(1)).findByEmail(email);
+        verify(passwordEncoder, times(1)).encode(nouveauMotDePasse);
+        verify(utilisateurRepository, times(1)).save(any(Utilisateur.class));
+    }
+
+    @Test
+    void changerMotDePasse_ShouldThrowExceptionWhenEmailIsNull() {
+        // Arrange
+        String email = null;
+        String nouveauMotDePasse = "password123";
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> utilisateurService.changerMotDePasse(email, nouveauMotDePasse));
+
+        assertEquals("Email invalide", exception.getMessage());
+        verify(utilisateurRepository, never()).findByEmail(anyString());
+        verify(utilisateurRepository, never()).save(any(Utilisateur.class));
+    }
+
+    @Test
+    void changerMotDePasse_ShouldThrowExceptionWhenEmailIsEmpty() {
+        // Arrange
+        String email = "   ";
+        String nouveauMotDePasse = "password123";
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> utilisateurService.changerMotDePasse(email, nouveauMotDePasse));
+
+        assertEquals("Email invalide", exception.getMessage());
+        verify(utilisateurRepository, never()).findByEmail(anyString());
+    }
+
+    @Test
+    void changerMotDePasse_ShouldThrowExceptionWhenPasswordIsNull() {
+        // Arrange
+        String email = "jean.dupont@example.com";
+        String nouveauMotDePasse = null;
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> utilisateurService.changerMotDePasse(email, nouveauMotDePasse));
+
+        assertEquals("Le nouveau mot de passe est requis", exception.getMessage());
+        verify(utilisateurRepository, never()).findByEmail(anyString());
+        verify(utilisateurRepository, never()).save(any(Utilisateur.class));
+    }
+
+    @Test
+    void changerMotDePasse_ShouldThrowExceptionWhenPasswordIsEmpty() {
+        // Arrange
+        String email = "jean.dupont@example.com";
+        String nouveauMotDePasse = "   ";
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> utilisateurService.changerMotDePasse(email, nouveauMotDePasse));
+
+        assertEquals("Le nouveau mot de passe est requis", exception.getMessage());
+        verify(utilisateurRepository, never()).findByEmail(anyString());
+    }
+
+    @Test
+    void changerMotDePasse_ShouldThrowExceptionWhenPasswordIsTooShort() {
+        // Arrange
+        String email = "jean.dupont@example.com";
+        String nouveauMotDePasse = "12345"; // Less than 6 characters
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> utilisateurService.changerMotDePasse(email, nouveauMotDePasse));
+
+        assertEquals("Le mot de passe doit contenir au moins 6 caractères", exception.getMessage());
+        verify(utilisateurRepository, never()).findByEmail(anyString());
+    }
+
+    @Test
+    void changerMotDePasse_ShouldThrowExceptionWhenUserNotFound() {
+        // Arrange
+        String email = "inconnu@example.com";
+        String nouveauMotDePasse = "password123";
+        when(utilisateurRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> utilisateurService.changerMotDePasse(email, nouveauMotDePasse));
+
+        assertEquals("Utilisateur non trouvé", exception.getMessage());
+        verify(utilisateurRepository, times(1)).findByEmail(email);
+        verify(utilisateurRepository, never()).save(any(Utilisateur.class));
+    }
+
+    @Test
+    void changerMotDePasse_ShouldThrowExceptionWhenUserIsBanned() {
+        // Arrange
+        String email = "jean.dupont@example.com";
+        String nouveauMotDePasse = "password123";
+        utilisateurFactice.setEstBanni(true);
+        when(utilisateurRepository.findByEmail(email)).thenReturn(Optional.of(utilisateurFactice));
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> utilisateurService.changerMotDePasse(email, nouveauMotDePasse));
+
+        assertEquals("Ce compte est banni", exception.getMessage());
+        verify(utilisateurRepository, times(1)).findByEmail(email);
+        verify(utilisateurRepository, never()).save(any(Utilisateur.class));
+    }
+
+    @Test
+    void changerMotDePasse_ShouldThrowExceptionWhenUserIsDeleted() {
+        // Arrange
+        String email = "jean.dupont@example.com";
+        String nouveauMotDePasse = "password123";
+        utilisateurFactice.setEstSupprime(true);
+        when(utilisateurRepository.findByEmail(email)).thenReturn(Optional.of(utilisateurFactice));
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> utilisateurService.changerMotDePasse(email, nouveauMotDePasse));
+
+        assertEquals("Ce compte a été supprimé", exception.getMessage());
+        verify(utilisateurRepository, times(1)).findByEmail(email);
+        verify(utilisateurRepository, never()).save(any(Utilisateur.class));
+    }
+
+// ============================================
+// Tests pour supprimerUtilisateur
+// ============================================
+
+    @Test
+    void supprimerUtilisateur_ShouldMarkUserAsDeleted() {
+        // Arrange
+        Long utilisateurId = 1L;
+        when(utilisateurRepository.findById(utilisateurId)).thenReturn(Optional.of(utilisateurFactice));
+        when(utilisateurRepository.save(any(Utilisateur.class))).thenReturn(utilisateurFactice);
+
+        // Act
+        Utilisateur resultat = utilisateurService.supprimerUtilisateur(utilisateurId);
+
+        // Assert
+        assertNotNull(resultat);
+        verify(utilisateurRepository, times(1)).findById(utilisateurId);
+        verify(utilisateurRepository, times(1)).save(any(Utilisateur.class));
+    }
+
+    @Test
+    void supprimerUtilisateur_ShouldThrowExceptionWhenUserNotFound() {
+        // Arrange
+        Long utilisateurId = 999L;
+        when(utilisateurRepository.findById(utilisateurId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> utilisateurService.supprimerUtilisateur(utilisateurId));
+
+        assertEquals("Utilisateur non trouvé", exception.getMessage());
+        verify(utilisateurRepository, times(1)).findById(utilisateurId);
+        verify(utilisateurRepository, never()).save(any(Utilisateur.class));
+    }
+
 }

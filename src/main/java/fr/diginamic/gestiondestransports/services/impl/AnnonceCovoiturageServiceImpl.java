@@ -35,7 +35,7 @@ public class AnnonceCovoiturageServiceImpl implements AnnonceCovoiturageService 
     private final AdresseMapper adresseMapper;
     private final UtilisateurService utilisateurService;
     private final OsmApi osmApi;
-    private final boolean apiDebug=false;
+
     @Autowired
     private EmailSender emailSender;
 
@@ -116,21 +116,17 @@ public class AnnonceCovoiturageServiceImpl implements AnnonceCovoiturageService 
                 annonceDto.dureeTrajet() == null || annonceDto.dureeTrajet() == 0);
 
         if (besoinEnrichissement) {
-            if (apiDebug)System.out.println("\nDistance ou durée manquante, enrichissement via OSM API...");
+
             boolean enrichissementReussi = osmApi.enrichirAnnonceAvecItineraire(nouvelleAnnonce);
 
             if (enrichissementReussi) {
-                if (apiDebug)System.out.println("✅ L'annonce a été enrichie avec succès !");
-                if (apiDebug)System.out.println("   📏 Distance : " + nouvelleAnnonce.getDistance() + " km");
-                if (apiDebug) System.out.println("   ⏱️  Durée : " + nouvelleAnnonce.getDureeTrajet() + " minutes");
+
             } else {
-                if (apiDebug)System.out.println("⚠️  L'enrichissement a échoué, impossible de calculer l'itinéraire");
+
                 throw new IllegalArgumentException("Impossible de calculer la distance et la durée. Veuillez les saisir manuellement.");
             }
         } else {
-            if (apiDebug) System.out.println("\n✓ Distance et durée fournies par l'utilisateur, pas d'appel OSM API");
-            if (apiDebug) System.out.println("   📏 Distance : " + nouvelleAnnonce.getDistance() + " km");
-            if (apiDebug) System.out.println("   ⏱️  Durée : " + nouvelleAnnonce.getDureeTrajet() + " minutes");
+
         }
 
 

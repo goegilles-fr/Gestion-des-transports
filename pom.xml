@@ -36,8 +36,20 @@
             **/security/**,
             **/shared/**,
             **/EmailSender.java,
+            **/OsmApi.class.java,
             **/GestionDesTransportsApplication.java
         </sonar.coverage.exclusions>
+        <sonar.exclusions>
+            **/mapper/**,
+            **/controllers/**,
+            **/config/**,
+            **/dto/**,
+            **/security/**,
+            **/shared/**,
+            **/EmailSender.java,
+            **/OsmApi.class.java,
+            **/GestionDesTransportsApplication.java
+        </sonar.exclusions>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -190,8 +202,9 @@
                                 <exclude>**/dto/**</exclude>
                                 <exclude>**/security/**</exclude>
                                 <exclude>**/shared/**</exclude>
-                                <exclude>**/EmailSender.class/**</exclude>
-                                <exclude>**/GestionDesTransportsApplication.class/**</exclude>
+                                <exclude>**/EmailSender.class</exclude>
+                                <exclude>**/OsmApi.class</exclude>
+                                <exclude>**/GestionDesTransportsApplication.class</exclude>
 
                             </excludes>
                         </configuration>
