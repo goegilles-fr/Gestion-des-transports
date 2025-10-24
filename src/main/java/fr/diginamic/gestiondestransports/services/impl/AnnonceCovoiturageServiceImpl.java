@@ -447,6 +447,7 @@ public class AnnonceCovoiturageServiceImpl implements AnnonceCovoiturageService 
         Utilisateur responsable = annonce.getResponsable();
         ParticipantsCovoiturageDto.PersonneDto conducteur =
                 ParticipantsCovoiturageDto.PersonneDto.of(
+                        responsable.getId(),
                         responsable.getNom(),
                         responsable.getPrenom()
                 );
@@ -457,6 +458,7 @@ public class AnnonceCovoiturageServiceImpl implements AnnonceCovoiturageService 
 
         List<ParticipantsCovoiturageDto.PersonneDto> passagers = covoituragePassagers.stream()
                 .map(cp -> ParticipantsCovoiturageDto.PersonneDto.of(
+                        cp.getUtilisateur().getId(),
                         cp.getUtilisateur().getNom(),
                         cp.getUtilisateur().getPrenom()
                 ))

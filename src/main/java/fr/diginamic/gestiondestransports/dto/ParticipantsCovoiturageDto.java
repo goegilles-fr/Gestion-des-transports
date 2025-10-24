@@ -15,22 +15,17 @@ public record ParticipantsCovoiturageDto(
      * Contient uniquement le nom et le prénom
      */
     public record PersonneDto(
+            Long id,
             String nom,
             String prenom
     ) {
         /**
          * Fabrique pour créer une PersonneDto
          */
-        public static PersonneDto of(String nom, String prenom) {
-            return new PersonneDto(nom, prenom);
+        public static PersonneDto of(Long id, String nom, String prenom) {
+            return new PersonneDto(id, nom, prenom);
         }
 
-        /**
-         * Retourne le nom complet de la personne
-         */
-        public String nomComplet() {
-            return prenom + " " + nom;
-        }
     }
 
     /**
