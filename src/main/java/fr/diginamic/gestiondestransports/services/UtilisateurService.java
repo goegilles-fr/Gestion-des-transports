@@ -3,6 +3,7 @@ package fr.diginamic.gestiondestransports.services;
 import fr.diginamic.gestiondestransports.dto.ModifierProfilDto;
 import fr.diginamic.gestiondestransports.entites.Adresse;
 import fr.diginamic.gestiondestransports.entites.Utilisateur;
+import fr.diginamic.gestiondestransports.entites.VehiculePersonnel;
 import fr.diginamic.gestiondestransports.enums.RoleEnum;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -52,4 +53,6 @@ public interface UtilisateurService {
     void reinitialiserMotDePasseAvecToken(String token);
 
     Utilisateur supprimerUtilisateur(Long utilisateurId);
+
+    VehiculePersonnel obtenirVehiculePersonnelParUtilisateurId(Long utilisateurId);
 }

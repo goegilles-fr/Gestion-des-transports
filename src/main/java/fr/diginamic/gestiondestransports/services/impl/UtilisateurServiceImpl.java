@@ -3,6 +3,7 @@ package fr.diginamic.gestiondestransports.services.impl;
 import fr.diginamic.gestiondestransports.dto.ModifierProfilDto;
 import fr.diginamic.gestiondestransports.entites.Adresse;
 import fr.diginamic.gestiondestransports.entites.Utilisateur;
+import fr.diginamic.gestiondestransports.entites.VehiculePersonnel;
 import fr.diginamic.gestiondestransports.enums.RoleEnum;
 import fr.diginamic.gestiondestransports.mapper.ModifierProfilMapper;
 import fr.diginamic.gestiondestransports.repositories.UtilisateurRepository;
@@ -540,5 +541,21 @@ public class UtilisateurServiceImpl implements UtilisateurService {
         utilisateur.setEstSupprime(true);
 
         return utilisateurRepository.save(utilisateur);
+    }
+
+    /**
+     * Récupère le véhicule personnel d'un utilisateur spécifique par son ID
+     * @param utilisateurId L'identifiant de l'utilisateur
+     * @return Le véhicule personnel de l'utilisateur ou null si inexistant
+     * @throws RuntimeException si l'utilisateur n'existe pas
+     */
+    public VehiculePersonnel obtenirVehiculePersonnelParUtilisateurId(Long utilisateurId) {
+        Utilisateur utilisateur = utilisateurRepository.findById(utilisateurId)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec l'ID : " + utilisateurId));
+
+        // Récupère le premier véhicule personnel de l'utilisateur s'il en existe
+        return utilisateur.getVehiculesPersonnels() != null && !utilisateur.getVehiculesPersonnels().isEmpty()
+                ? utilisateur.getVehiculesPersonnels().iterator().next()
+                : null;
     }
 }
