@@ -387,6 +387,23 @@ public class UtilisateurController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erreur);
         }
     }
+    /**
+     * Récupère le véhicule personnel d'un utilisateur spécifique
+     * @param id L'identifiant de l'utilisateur
+     * @return Le véhicule personnel de l'utilisateur sous forme de DTO
+     */
+    @GetMapping("/{id}/vehicule-perso")
+    public ResponseEntity<VehiculeDTO> obtenirVehiculePersonnelParId(@PathVariable Long id) {
+        VehiculePersonnel vehicule = utilisateurService.obtenirVehiculePersonnelParUtilisateurId(id);
+
+        if (vehicule == null) {
+            return ResponseEntity.noContent().build();
+        }
+
+        VehiculeDTO vehiculeDto = vehiculeMapper.toDto(vehicule);
+        return ResponseEntity.ok(vehiculeDto);
+    }
+
 
 
 }
