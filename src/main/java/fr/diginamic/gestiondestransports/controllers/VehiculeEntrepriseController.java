@@ -33,13 +33,7 @@ public class VehiculeEntrepriseController {
         return ResponseEntity.ok(service.findAll());
     }
 
-    /**
-     * @param dateDebut
-     * @param dateFin
-     * @return
-     * Example
-     *      /api/vehicules-entreprise/dispo?dateDebut=2025-09-23T17:00:00&dateFin=2025-09-24T18:00:00
-     */
+
     @GetMapping("/dispo")
     @Operation(summary = "Obtenir les véhicules d'entreprise disponibles pour une période donnée")
     public ResponseEntity<List<VehiculeDTO>> getVehiculesEntrepriseDisponibles(

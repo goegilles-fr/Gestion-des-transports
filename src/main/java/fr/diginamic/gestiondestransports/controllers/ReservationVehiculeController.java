@@ -95,16 +95,7 @@ public class ReservationVehiculeController {
 
 
 
-    /**
-     * @param userDetails
-     * @param dateDebut
-     * @param dureeMinutes
-     * @return
-     * Example
-     *
-     * http://localhost:8080/api/reservations-vehicules/utilisateur/recherche?dateDebut=2025-09-23T10:00:00&dureeMinutes=60
-     *
-     */
+
     @GetMapping("/utilisateur/recherche")
     @Operation(
             summary = "Obtenir la réservation de voiture de société pour l'utilisateur connecté pour la date et la durée spécifiées")

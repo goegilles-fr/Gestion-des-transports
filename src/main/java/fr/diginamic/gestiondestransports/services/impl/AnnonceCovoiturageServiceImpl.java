@@ -302,7 +302,7 @@ public class AnnonceCovoiturageServiceImpl implements AnnonceCovoiturageService 
      * Réserve une place dans un covoiturage pour un utilisateur
      * @param idAnnonce l'ID de l'annonce de covoiturage
      * @param idUtilisateur l'ID de l'utilisateur qui réserve
-     * @return confirmation de la réservation
+     *
      */
     @Override
     public void reserverPlace(Long idAnnonce, Long idUtilisateur) {
