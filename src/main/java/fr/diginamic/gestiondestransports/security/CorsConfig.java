@@ -7,10 +7,24 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
-
+/**
+ * Configuration CORS (Cross-Origin Resource Sharing) pour l'application.
+ * Permet aux applications frontend (Angular) hébergées sur des domaines différents
+ * d'accéder à l'API REST en toute sécurité.
+ * Configure les origines autorisées, les méthodes HTTP, les headers, et la gestion des credentials.
+ * ATTENTION : Configuration actuelle adaptée au développement, à ajuster pour la production.
+ */
 @Configuration
 public class CorsConfig {
-
+    /**
+     * Configure la source de configuration CORS pour l'application.
+     * Définit les origines autorisées (localhost:4200 pour Angular dev, et les domaines de production).
+     * Autorise toutes les méthodes HTTP (GET, POST, PUT, DELETE, OPTIONS).
+     * Autorise tous les headers et les credentials (nécessaire pour les tokens JWT).
+     * Cache la réponse preflight pendant 1 heure pour optimiser les performances.
+     *
+     * @return la source de configuration CORS appliquée à tous les endpoints
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();

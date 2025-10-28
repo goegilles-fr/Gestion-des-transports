@@ -27,26 +27,45 @@ class JavadocScanner:
     def has_javadoc_before_line(self, lines, line_index):
         """Check if there's a Javadoc comment before the given line"""
         # Look backwards from the line, skipping annotations and whitespace
-        for i in range(line_index - 1, max(0, line_index - 20), -1):
+        # Increased range to 50 lines to handle complex annotations
+        javadoc_found = False
+
+        for i in range(line_index - 1, max(0, line_index - 50), -1):
             line = lines[i].strip()
 
-            # Found Javadoc start
-            if line.startswith('/**'):
+            # Found Javadoc end - mark it
+            if line.endswith('*/') and not line.startswith('//'):
+                javadoc_found = True
+                continue
+
+            # If we found Javadoc end, now look for the start
+            if javadoc_found and line.startswith('/**'):
                 return True
 
             # Skip these lines and keep looking
             if (not line or  # Empty line
                 line.startswith('*') or  # Inside a comment
                 line.startswith('//') or  # Single line comment
-                line.startswith('@') or  # Annotation
+                line.startswith('@') or  # Annotation (including @PostMapping, @GetMapping, etc.)
                 line == '}' or  # Closing brace
+                line == '{' or  # Opening brace
                 line.startswith('import ') or  # Import statement
-                line.startswith('package ')):  # Package statement
+                line.startswith('package ') or  # Package statement
+                line == ')' or  # Closing parenthesis
+                line.endswith(')') or  # Line ending with parenthesis
+                line.endswith(',') or  # Line ending with comma
+                line.startswith('.')):  # Continuation line
                 continue
 
-            # Found actual code (not annotation, not comment) - stop looking
-            if line and not line.startswith('*'):
-                return False
+            # If we haven't found javadoc end yet and we hit actual code/previous method
+            # stop looking
+            if not javadoc_found and line:
+                # Check if it's a method declaration from previous method
+                if re.search(r'(public|private|protected)\s+(static\s+)?\w+', line):
+                    return False
+                # Check if it's try/catch/if/for etc
+                if line.startswith(('try', 'catch', 'if', 'for', 'while', 'return', 'throw')):
+                    return False
 
         return False
 
@@ -151,24 +170,12 @@ class JavadocScanner:
         method_coverage = (documented_methods / total_methods * 100) if total_methods > 0 else 0
         overall_coverage = ((documented_classes + documented_methods) / (total_classes + total_methods) * 100) if (total_classes + total_methods) > 0 else 0
 
-        # Summary
-        report.append("## 📈 Résumé Global\n")
         report.append(f"- **Couverture Globale**: {overall_coverage:.1f}%")
         report.append(f"- **Classes**: {documented_classes}/{total_classes} ({class_coverage:.1f}%)")
         report.append(f"- **Méthodes**: {documented_methods}/{total_methods} ({method_coverage:.1f}%)")
         report.append(f"- **Packages analysés**: {len(self.stats)}\n")
 
-        # Status
-        if overall_coverage == 100:
-            status = "✅ EXCELLENT"
-        elif overall_coverage >= 80:
-            status = "✅ BON"
-        elif overall_coverage >= 50:
-            status = "⚠️ MOYEN"
-        else:
-            status = "❌ INSUFFISANT"
 
-        report.append(f"**Statut**: {status}\n")
 
         # By package
         report.append("## 📦 Couverture par Package\n")
@@ -215,24 +222,8 @@ class JavadocScanner:
                                 report.append(f"- 🔴 Méthode `{item['name']}` (ligne {item['line']})")
                         report.append("")
 
-        # Action plan
-        report.append("## 🎯 Plan d'Action\n")
 
-        undoc_classes = total_classes - documented_classes
-        undoc_methods = total_methods - documented_methods
 
-        if undoc_classes > 0:
-            report.append(f"1. **Documenter {undoc_classes} classe(s)**")
-        if undoc_methods > 0:
-            report.append(f"2. **Documenter {undoc_methods} méthode(s)**")
-
-        if overall_coverage < 100:
-            report.append("\n**Recommandations**:")
-            report.append("- Utiliser `add_javadoc.py` pour automatiser les getters/setters")
-            report.append("- Documenter manuellement les méthodes métier importantes")
-            report.append("- Prioriser les classes de service (mentionnées dans le cahier des charges)")
-        else:
-            report.append("\n🎉 **Félicitations! Votre code est documenté à 100%!**")
 
         return "\n".join(report)
 

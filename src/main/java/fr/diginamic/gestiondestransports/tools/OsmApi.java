@@ -38,15 +38,27 @@ public class OsmApi {
             this.latitude = latitude;
             this.longitude = longitude;
         }
-
+        /**
+         * Obtient la latitude des coordonnées géographiques.
+         *
+         * @return la latitude en degrés décimaux
+         */
         public double getLatitude() {
             return latitude;
         }
-
+        /**
+         * Obtient la longitude des coordonnées géographiques.
+         *
+         * @return la longitude en degrés décimaux
+         */
         public double getLongitude() {
             return longitude;
         }
-
+        /**
+         * Représentation textuelle des coordonnées géographiques.
+         *
+         * @return chaîne formatée contenant latitude et longitude
+         */
         @Override
         public String toString() {
             return "Coordonnees{lat=" + latitude + ", lon=" + longitude + "}";
@@ -59,20 +71,39 @@ public class OsmApi {
     public static class ResultatItineraire {
         private final Integer distanceKm;
         private final Integer dureeMinutes;
-
+        /**
+         * Représentation textuelle du résultat de l'itinéraire.
+         *
+         * @return chaîne formatée contenant la distance en km et la durée en minutes
+         */
         public ResultatItineraire(Integer distanceKm, Integer dureeMinutes) {
             this.distanceKm = distanceKm;
             this.dureeMinutes = dureeMinutes;
         }
-
+        /**
+         * Obtient la distance calculée de l'itinéraire.
+         *
+         * @return la distance en kilomètres (arrondie à l'entier le plus proche)
+         */
         public Integer getDistanceKm() {
             return distanceKm;
         }
-
+        /**
+         * Obtient la durée estimée du trajet.
+         *
+         * @return la durée en minutes (arrondie à l'entier le plus proche)
+         */
         public Integer getDureeMinutes() {
             return dureeMinutes;
         }
 
+
+        /**
+         * Représentation textuelle du résultat de l'itinéraire calculé.
+         * Format : "ResultatItineraire{distance=X km, duree=Y min}"
+         *
+         * @return chaîne formatée affichant la distance en kilomètres et la durée en minutes
+         */
         @Override
         public String toString() {
             return "ResultatItineraire{distance=" + distanceKm + " km, duree=" + dureeMinutes + " min}";

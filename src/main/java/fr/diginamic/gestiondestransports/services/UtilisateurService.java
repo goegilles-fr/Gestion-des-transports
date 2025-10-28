@@ -9,7 +9,19 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-
+/**
+ * Interface de service pour la gestion des utilisateurs.
+ * Définit les opérations métier pour :
+ * - Inscription et authentification des utilisateurs
+ * - Gestion des profils (consultation, modification)
+ * - Gestion des rôles (COLLABORATEUR, ADMINISTRATEUR)
+ * - Gestion des statuts (banni, vérifié, supprimé)
+ * - Réinitialisation et changement de mot de passe
+ * - Recherche et filtrage des utilisateurs
+ * Applique les règles métier du cahier des charges concernant la gestion des comptes utilisateurs.
+ * Les mots de passe sont automatiquement cryptés avec BCrypt.
+ * Implémentée par UtilisateurServiceImpl.
+ */
 public interface UtilisateurService {
     Utilisateur inscrireUtilisateur(String nom, String prenom, String email, String motDePasse, Adresse adresse);
 

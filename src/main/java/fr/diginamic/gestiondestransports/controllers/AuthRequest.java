@@ -1,7 +1,12 @@
 package fr.diginamic.gestiondestransports.controllers;
 
 
-
+/**
+ * Classe de requête contenant les informations d'authentification.
+ * Utilisée pour transmettre les identifiants (username et password) lors de la connexion.
+ * Le username correspond à l'adresse email de l'utilisateur.
+ * Le password est transmis en clair dans la requête et sera vérifié contre le hash BCrypt stocké en base.
+ */
 public class AuthRequest {
     
 	/** username */
