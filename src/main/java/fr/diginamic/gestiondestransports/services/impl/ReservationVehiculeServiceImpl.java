@@ -18,7 +18,14 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-
+/**
+ * Implémentation du service de gestion des réservations de véhicules d'entreprise.
+ * Gère la logique métier complète : création, modification, suppression, consultation des réservations.
+ * Applique les règles de validation : disponibilité des véhicules, chevauchement de périodes, statut du véhicule.
+ * Vérifie les conflits avec les annonces de covoiturage lors de la suppression.
+ * Un utilisateur ne peut avoir qu'une seule réservation active à la fois (pas de chevauchement).
+ * Conforme aux règles métier du cahier des charges concernant les réservations de véhicules de service.
+ */
 @Service
 @Transactional
 public class ReservationVehiculeServiceImpl implements ReservationVehiculeService {
@@ -37,12 +44,27 @@ public class ReservationVehiculeServiceImpl implements ReservationVehiculeServic
         this.annonceCovoiturageRepo = annonceCovoiturageRepo;
         this.reservationMapper = reservationMapper;
     }
-
+    /**
+     * Récupère toutes les réservations de véhicules existantes.
+     * Convertit les entités en DTOs pour la couche présentation.
+     *
+     * @return liste de toutes les réservations sous forme de DTOs
+     */
     @Override
     public List<ReservationVehiculeDTO> findAll() {
         return reservationMapper.toDtoList(repo.findAll());
     }
-
+    /**
+     * Récupère une réservation spécifique par son identifiant.
+     * Vérifie que l'utilisateur demandeur est bien le propriétaire de la réservation.
+     * Les administrateurs peuvent consulter toutes les réservations.
+     *
+     * @param user l'utilisateur authentifié effectuant la demande
+     * @param id l'identifiant de la réservation
+     * @return le DTO de la réservation
+     * @throws NotFoundException si la réservation n'existe pas
+     * @throws BadRequestException si l'utilisateur n'est pas le propriétaire
+     */
     @Override
     public ReservationVehiculeDTO findById(Utilisateur user, Long id) {
         ReservationVehicule entity = repo.findById(id)
@@ -52,7 +74,20 @@ public class ReservationVehiculeServiceImpl implements ReservationVehiculeServic
         }
         return reservationMapper.toDto(entity);
     }
-
+    /**
+     * Crée une nouvelle réservation de véhicule d'entreprise.
+     * Applique les règles de validation :
+     * - Le véhicule doit être EN_SERVICE
+     * - Les dates doivent être futures et cohérentes (début < fin)
+     * - Le véhicule doit être disponible sur la période (pas de chevauchement)
+     * - L'utilisateur ne doit pas avoir d'autre réservation sur cette période
+     *
+     * @param user l'utilisateur effectuant la réservation
+     * @param dto les données de la réservation (vehiculeId, dateDebut, dateFin)
+     * @return le DTO de la réservation créée avec son ID
+     * @throws BadRequestException si les données sont invalides ou si le véhicule n'est pas disponible
+     * @throws NotFoundException si le véhicule n'existe pas
+     */
     @Override
     public ReservationVehiculeDTO create(Utilisateur user, ReservationVehiculeDTO dto) {
         if (dto.vehiculeId() == null) {
@@ -71,7 +106,20 @@ public class ReservationVehiculeServiceImpl implements ReservationVehiculeServic
         ReservationVehicule saved = repo.save(entity);
         return reservationMapper.toDto(saved);
     }
-
+    /**
+     * Modifie une réservation existante.
+     * Supporte la mise à jour partielle (seuls les champs fournis sont modifiés).
+     * Vérifie que l'utilisateur est le propriétaire de la réservation.
+     * Réapplique toutes les validations sur les nouvelles valeurs effectives.
+     * Si le véhicule est modifié ou les dates changent, vérifie la disponibilité.
+     *
+     * @param user l'utilisateur effectuant la modification
+     * @param id l'identifiant de la réservation à modifier
+     * @param dto les nouvelles données (champs optionnels pour update partiel)
+     * @return le DTO de la réservation modifiée
+     * @throws NotFoundException si la réservation n'existe pas
+     * @throws BadRequestException si l'utilisateur n'est pas propriétaire ou si les nouvelles données sont invalides
+     */
     @Override
     public ReservationVehiculeDTO update(Utilisateur user, Long id, ReservationVehiculeDTO dto) {
         ReservationVehicule entity = repo.findById(id)
@@ -102,7 +150,19 @@ public class ReservationVehiculeServiceImpl implements ReservationVehiculeServic
         return reservationMapper.toDto(entity);
     }
 
-
+    /**
+     * Recherche une réservation de véhicule couvrant une période spécifique pour un utilisateur.
+     * La réservation doit commencer avant ou au moment du début recherché
+     * et finir après ou au moment de la fin recherchée (englobe complètement la période).
+     * Utilisé pour valider qu'un utilisateur a bien réservé un véhicule pour créer une annonce de covoiturage.
+     *
+     * @param user l'utilisateur authentifié
+     * @param dateDebut date et heure de début de la période recherchée
+     * @param dureeMinutes durée en minutes de la période
+     * @return le DTO de la réservation couvrant cette période
+     * @throws BadRequestException si les paramètres sont invalides
+     * @throws NotFoundException si aucune réservation ne couvre cette période
+     */
     @Override
     public ReservationVehiculeDTO findByUtilisateurAndPeriode(Utilisateur user, LocalDateTime dateDebut, Integer dureeMinutes) {
         // Validation des paramètres
@@ -132,7 +192,18 @@ public class ReservationVehiculeServiceImpl implements ReservationVehiculeServic
         return reservationMapper.toDto(entity);
     }
 
-
+    /**
+     * Supprime une réservation de véhicule.
+     * Vérifie que l'utilisateur est le propriétaire.
+     * Refuse la suppression si le véhicule est utilisé dans des annonces de covoiturage
+     * dont la période chevauche celle de la réservation.
+     * Fournit un message d'erreur détaillé listant les covoiturages en conflit.
+     *
+     * @param user l'utilisateur effectuant la suppression
+     * @param id l'identifiant de la réservation à supprimer
+     * @throws NotFoundException si la réservation n'existe pas
+     * @throws BadRequestException si l'utilisateur n'est pas propriétaire ou si des covoiturages utilisent ce véhicule
+     */
     @Override
     public void delete(Utilisateur user, Long id) {
         // Récupération de la réservation
@@ -201,17 +272,44 @@ public class ReservationVehiculeServiceImpl implements ReservationVehiculeServic
         // Si toutes les validations passent, on supprime la réservation
         repo.deleteById(id);
     }
-
+    /**
+     * Récupère toutes les réservations d'un utilisateur spécifique.
+     * Inclut les réservations passées, en cours et futures.
+     *
+     * @param user l'utilisateur dont on veut les réservations
+     * @return liste des réservations de l'utilisateur sous forme de DTOs
+     */
     @Override
     public List<ReservationVehiculeDTO> findByUtilisateurId(Utilisateur user) {
         return reservationMapper.toDtoList(repo.findByUtilisateurId(user.getId()));
     }
-
+    /**
+     * Récupère toutes les réservations associées à un véhicule spécifique.
+     * Utile pour les administrateurs pour consulter l'historique d'utilisation d'un véhicule.
+     * Affiche dans la page de modification du véhicule.
+     *
+     * @param vehiculeId l'identifiant du véhicule d'entreprise
+     * @return liste des réservations de ce véhicule sous forme de DTOs
+     */
     @Override
     public List<ReservationVehiculeDTO> findByVehiculeId(Long vehiculeId) {
         return reservationMapper.toDtoList(repo.findByVehiculeEntrepriseId(vehiculeId));
     }
-
+    /**
+     * Valide les contraintes d'une réservation de véhicule.
+     * Vérifie :
+     * - Les dates sont futures et cohérentes
+     * - Le véhicule existe et est EN_SERVICE
+     * - Le véhicule est disponible (pas de chevauchement avec d'autres réservations)
+     * Exclut une réservation spécifique de la vérification (pour les mises à jour).
+     *
+     * @param vehiculeId l'identifiant du véhicule à réserver
+     * @param debut date et heure de début de la réservation
+     * @param fin date et heure de fin de la réservation
+     * @param reservationIdAExclure identifiant de la réservation à exclure (null pour création)
+     * @throws BadRequestException si une des validations échoue
+     * @throws NotFoundException si le véhicule n'existe pas
+     */
     private void validateReservation(Long vehiculeId, LocalDateTime debut, LocalDateTime fin, Long reservationIdAExclure) {
         LocalDateTime now = LocalDateTime.now(); // horloge système
         if (!debut.isAfter(now)) {
@@ -251,7 +349,17 @@ public class ReservationVehiculeServiceImpl implements ReservationVehiculeServic
             }
         }
     }
-
+    /**
+     * Valide qu'un utilisateur n'a pas de chevauchement avec ses propres réservations.
+     * Règle métier : un utilisateur ne peut avoir qu'une seule réservation active à la fois.
+     * Exclut une réservation spécifique de la vérification (pour les mises à jour).
+     *
+     * @param debut date et heure de début de la nouvelle réservation
+     * @param fin date et heure de fin de la nouvelle réservation
+     * @param userId l'identifiant de l'utilisateur
+     * @param reservationIdAExclure identifiant de la réservation à exclure (null pour création)
+     * @throws BadRequestException si un chevauchement est détecté avec une autre réservation de l'utilisateur
+     */
     private void validateUser(LocalDateTime debut, LocalDateTime fin, Long userId, Long reservationIdAExclure) {
         // Vérification que l'utilisateur n'a pas d'autre réservation en même temps
         List<ReservationVehicule> reservationsUtilisateur = repo.findByUtilisateurId(userId);

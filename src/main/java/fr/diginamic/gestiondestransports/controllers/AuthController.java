@@ -83,7 +83,19 @@ public class AuthController {
 
 
     }
-
+    /**
+     * Enregistre un nouvel utilisateur dans le système.
+     * Valide les données fournies, crée le compte utilisateur avec son adresse, et envoie un email de vérification.
+     * Le mot de passe est automatiquement crypté avant stockage.
+     * Le rôle par défaut "COLLABORATEUR" est attribué.
+     * Le statut initial est non vérifié (estVerifie = false).
+     *
+     * @param registrationDto les données d'inscription (nom, prénom, email, password, adresse complète)
+     * @param bindingResult résultat de la validation des données d'entrée
+     * @return ResponseEntity contenant l'identifiant du nouvel utilisateur et message de confirmation (201 CREATED)
+     *         ou les erreurs de validation (400 BAD REQUEST)
+     * @throws RuntimeException si l'email existe déjà ou si une erreur survient lors de la création
+     */
     @PostMapping("/register")
     @Operation(
             summary = "Register. Nom Prenom email password, adress complete ")

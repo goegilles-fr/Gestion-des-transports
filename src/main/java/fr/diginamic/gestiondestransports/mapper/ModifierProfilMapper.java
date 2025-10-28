@@ -5,7 +5,9 @@ import fr.diginamic.gestiondestransports.entites.Utilisateur;
 import org.mapstruct.*;
 
 /**
- * Mapper MapStruct pour la modification du profil utilisateur
+ * Mapper MapStruct pour la modification du profil utilisateur.
+ * Permet la mise à jour partielle d'un utilisateur existant sans modifier les champs sensibles.
+ * Utilise AdresseMapper pour convertir les adresses imbriquées.
  */
 @Mapper(componentModel = "spring",
         injectionStrategy = InjectionStrategy.CONSTRUCTOR,
@@ -14,11 +16,12 @@ import org.mapstruct.*;
 public interface ModifierProfilMapper {
 
     /**
-     * Met à jour une entité Utilisateur existante avec les données du DTO de modification
-     * Seuls les champs non-null du DTO sont appliqués à l'entité
+     * Met à jour une entité Utilisateur existante avec les données du DTO de modification.
+     * Seuls les champs non-null du DTO sont appliqués à l'entité.
+     * Les champs sensibles (ID, email, rôle, statuts) ne peuvent pas être modifiés via ce mapper.
      *
      * @param modifierProfilDto le DTO contenant les nouvelles données (peut être partiel)
-     * @param utilisateurExistant l'entité à mettre à jour
+     * @param utilisateurExistant l'entité utilisateur à mettre à jour
      */
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true) // Ne jamais modifier l'ID

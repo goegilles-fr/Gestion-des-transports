@@ -16,7 +16,18 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
+/**
+ * Implémentation du service de gestion des véhicules d'entreprise (véhicules de service).
+ * Gère la logique métier complète du parc automobile :
+ * - CRUD des véhicules (création, lecture, modification, suppression)
+ * - Vérification de disponibilité sur une période donnée
+ * - Validation des données (statut, immatriculation, nombre de places)
+ * - Gestion du cycle de vie des véhicules (EN_SERVICE, EN_REPARATION, HORS_SERVICE)
+ * - Détection des chevauchements de réservations
+ * Applique les règles métier du cahier des charges concernant les véhicules de service.
+ * Seuls les administrateurs peuvent créer, modifier ou supprimer des véhicules.
+ * Toutes les opérations sont transactionnelles pour garantir la cohérence des données.
+ */
 @Service
 @Transactional
 public class VehiculeEntrepriseServiceImpl implements VehiculeEntrepriseService {
@@ -33,12 +44,32 @@ public class VehiculeEntrepriseServiceImpl implements VehiculeEntrepriseService 
         this.repoReservations = repoReservations;
 
     }
-
+    /**
+     * Récupère tous les véhicules d'entreprise.
+     * Convertit les entités en DTOs pour la couche présentation.
+     *
+     * @return liste de tous les véhicules d'entreprise sous forme de DTOs
+     */
     @Override
     public List<VehiculeDTO> findAll() {
         return vehiculeMapper.toDtoEntrepriseList(repo.findAll());
     }
-
+    /**
+     * Recherche les véhicules d'entreprise disponibles pour une période donnée.
+     * Applique les validations suivantes :
+     * - Les dates doivent être futures (postérieures à maintenant)
+     * - La date de fin doit être postérieure à la date de début
+     * Filtre les véhicules selon ces critères :
+     * - Statut EN_SERVICE uniquement
+     * - Aucune réservation ne chevauche la période demandée
+     * Utilisé pour afficher le carrousel de véhicules lors de la création d'une réservation.
+     *
+     * @param dateDebut date et heure de début de la période recherchée
+     * @param dateFin date et heure de fin de la période recherchée
+     * @return liste des véhicules disponibles sous forme de DTOs
+     * @throws BadRequestException si les dates sont incohérentes ou passées
+     * @throws NotFoundException si aucun véhicule n'est en service ou disponible
+     */
     public List<VehiculeDTO> findByAvailability(LocalDateTime dateDebut, LocalDateTime dateFin) {
         // Check if dateFin is after dateDebut
         if (dateFin.isBefore(dateDebut) || dateFin.isEqual(dateDebut)) {
@@ -101,14 +132,33 @@ public class VehiculeEntrepriseServiceImpl implements VehiculeEntrepriseService 
 
         return vehiculeMapper.toDtoEntrepriseList(vehiculesDisponibles);
     }
-
+    /**
+     * Récupère un véhicule d'entreprise par son identifiant.
+     * Convertit l'entité en DTO pour la couche présentation.
+     *
+     * @param id l'identifiant unique du véhicule
+     * @return le DTO du véhicule
+     * @throws NotFoundException si le véhicule n'existe pas
+     */
     @Override
     public VehiculeDTO findById(Long id) {
         VehiculeEntreprise ve = repo.findById(id)
                 .orElseThrow(() -> new NotFoundException("Véhicule d'entreprise introuvable: " + id));
         return vehiculeMapper.toDto(ve);
     }
-
+    /**
+     * Crée un nouveau véhicule d'entreprise.
+     * Valide les données obligatoires :
+     * - Marque, modèle, immatriculation non vides
+     * - Statut obligatoire
+     * - Nombre de places >= 2
+     * - CO2/km >= 0 si fourni
+     * - Aucun utilisateurId (spécifique aux véhicules d'entreprise)
+     *
+     * @param dto les données du véhicule à créer
+     * @return le DTO du véhicule créé avec son ID
+     * @throws BadRequestException si les données sont invalides
+     */
     @Override
     public VehiculeDTO create(VehiculeDTO dto) {
         if (dto.marque() == null || dto.marque().isBlank()){
@@ -137,7 +187,19 @@ public class VehiculeEntrepriseServiceImpl implements VehiculeEntrepriseService 
         VehiculeEntreprise saved = repo.save(entity);
         return vehiculeMapper.toDto(saved);
     }
-
+    /**
+     * Modifie un véhicule d'entreprise existant.
+     * Supporte la mise à jour partielle (seuls les champs fournis sont modifiés).
+     * Applique les mêmes validations que la création sur les champs fournis.
+     * Le changement de statut (EN_REPARATION, HORS_SERVICE) doit déclencher
+     * l'annulation des réservations (géré au niveau de la couche service supérieure).
+     *
+     * @param id l'identifiant du véhicule à modifier
+     * @param dto les nouvelles données (champs optionnels pour update partiel)
+     * @return le DTO du véhicule modifié
+     * @throws NotFoundException si le véhicule n'existe pas
+     * @throws BadRequestException si les données fournies sont invalides
+     */
     @Override
     public VehiculeDTO update(Long id, VehiculeDTO dto) {
         VehiculeEntreprise entity = repo.findById(id)
@@ -173,7 +235,14 @@ public class VehiculeEntrepriseServiceImpl implements VehiculeEntrepriseService 
 
         return vehiculeMapper.toDto(entity);
     }
-
+    /**
+     * Supprime un véhicule d'entreprise.
+     * La suppression doit déclencher l'annulation de toutes les réservations associées
+     * et l'envoi d'emails aux utilisateurs concernés (géré au niveau de la couche service supérieure).
+     *
+     * @param id l'identifiant du véhicule à supprimer
+     * @throws NotFoundException si le véhicule n'existe pas
+     */
     @Override
     public void delete(Long id) {
         if (!repo.existsById(id)) {
@@ -181,7 +250,14 @@ public class VehiculeEntrepriseServiceImpl implements VehiculeEntrepriseService 
         }
         repo.deleteById(id);
     }
-
+    /**
+     * Récupère tous les véhicules d'entreprise ayant un statut spécifique.
+     * Statuts possibles : EN_SERVICE, EN_REPARATION, HORS_SERVICE.
+     * Utile pour les administrateurs pour filtrer les véhicules nécessitant une intervention.
+     *
+     * @param statut le statut recherché (chaîne convertie en enum StatutVehicule)
+     * @return liste des véhicules ayant ce statut sous forme de DTOs
+     */
     @Override
     public List<VehiculeDTO> findByStatut(String statut) {
         return vehiculeMapper.toDtoEntrepriseList(repo.findByStatut(StatutVehicule.valueOf(statut)));

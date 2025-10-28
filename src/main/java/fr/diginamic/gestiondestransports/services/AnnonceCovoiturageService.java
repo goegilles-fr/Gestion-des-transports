@@ -5,7 +5,16 @@ import fr.diginamic.gestiondestransports.dto.AnnonceCovoiturageDto;
 import fr.diginamic.gestiondestransports.dto.ParticipantsCovoiturageDto;
 
 import java.util.List;
-
+/**
+ * Interface de service pour la gestion des annonces de covoiturage.
+ * Définit les opérations métier principales du système de covoiturage :
+ * - Création, modification, suppression d'annonces par les organisateurs
+ * - Réservation et annulation de places par les passagers
+ * - Consultation des annonces disponibles et des participants
+ * - Gestion des places (totales et occupées)
+ * Applique les règles métier du cahier des charges concernant les annonces de covoiturage.
+ * Implémentée par AnnonceCovoiturageServiceImpl.
+ */
 public interface AnnonceCovoiturageService  {
 
     AnnonceCovoiturageDto creerAnnonce(AnnonceCovoiturageDto annonceDto, Long idUtilisateurResponsable);

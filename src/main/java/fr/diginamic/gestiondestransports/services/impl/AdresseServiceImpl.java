@@ -9,7 +9,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
-
+/**
+ * Implémentation du service de gestion des adresses.
+ * Fournit les opérations CRUD complètes pour les entités Adresse.
+ * Gère la création d'adresses à partir d'objets ou de paramètres individuels.
+ * Les adresses sont partagées entre les utilisateurs et les annonces de covoiturage
+ * pour éviter la duplication de données identiques en base.
+ * Toutes les opérations sont transactionnelles pour garantir la cohérence des données.
+ */
 @Service
 @Transactional
 public class AdresseServiceImpl implements AdresseService {

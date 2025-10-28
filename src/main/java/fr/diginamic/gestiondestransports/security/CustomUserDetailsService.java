@@ -22,7 +22,20 @@ public class CustomUserDetailsService implements UserDetailsService {
     /** Pour l'accès en base de données */
     @Autowired
     private UtilisateurRepository UtilisateurRepository;
-
+    /**
+     * Charge les détails d'un utilisateur depuis la base de données pour l'authentification Spring Security.
+     * Utilisé en deux temps par le processus d'authentification :
+     * 1. Appelé indirectement par AuthenticationManager pour vérifier username/password
+     * 2. Appelé directement pour récupérer les détails complets de l'utilisateur après authentification
+     *
+     * Convertit l'entité Utilisateur en objet UserDetails de Spring Security.
+     * Le compte est activé uniquement si estVerifie = true.
+     * Le rôle de l'utilisateur est ajouté comme autorité (ROLE_COLLABORATEUR ou ROLE_ADMIN).
+     *
+     * @param email l'adresse email de l'utilisateur (utilisée comme username)
+     * @return les détails de l'utilisateur pour Spring Security
+     * @throws UsernameNotFoundException si aucun utilisateur ne correspond à cet email
+     */
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         Utilisateur user = UtilisateurRepository.findByEmail(email)

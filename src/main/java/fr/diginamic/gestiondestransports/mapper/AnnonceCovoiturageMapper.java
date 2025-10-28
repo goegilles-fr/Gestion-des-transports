@@ -7,7 +7,9 @@ import org.mapstruct.*;
 import java.util.List;
 
 /**
- * Mapper MapStruct pour convertir entre AnnonceCovoiturage et AnnonceCovoiturageDto
+ * Mapper MapStruct pour convertir entre AnnonceCovoiturage et AnnonceCovoiturageDto.
+ * Permet la conversion bidirectionnelle entre l'entité et son DTO.
+ * Utilise AdresseMapper pour convertir les adresses imbriquées.
  */
 @Mapper(componentModel = "spring",
         injectionStrategy = InjectionStrategy.CONSTRUCTOR,
@@ -15,10 +17,10 @@ import java.util.List;
         uses = {AdresseMapper.class})
 public interface AnnonceCovoiturageMapper {
 
-    // ========== ENTITE -> DTO ==========
-
     /**
-     * Convertit une entité AnnonceCovoiturage en AnnonceCovoiturageDto
+     * Convertit une entité AnnonceCovoiturage en AnnonceCovoiturageDto.
+     * Mappe automatiquement les adresses de départ et d'arrivée, et récupère l'ID du véhicule de service.
+     *
      * @param annonceCovoiturage l'entité à convertir
      * @return le DTO correspondant
      */
@@ -28,16 +30,17 @@ public interface AnnonceCovoiturageMapper {
     AnnonceCovoiturageDto versDto(AnnonceCovoiturage annonceCovoiturage);
 
     /**
-     * Convertit une liste d'entités AnnonceCovoiturage en liste d'AnnonceCovoiturageDto
+     * Convertit une liste d'entités AnnonceCovoiturage en liste d'AnnonceCovoiturageDto.
+     *
      * @param annoncesCovoiturage la liste d'entités à convertir
      * @return la liste de DTOs correspondante
      */
     List<AnnonceCovoiturageDto> versDtoList(List<AnnonceCovoiturage> annoncesCovoiturage);
 
-    // ========== DTO -> ENTITE ==========
-
     /**
-     * Convertit un AnnonceCovoiturageDto en entité AnnonceCovoiturage
+     * Convertit un AnnonceCovoiturageDto en entité AnnonceCovoiturage.
+     * Les relations (véhicule, responsable, passagers) doivent être gérées dans la couche service.
+     *
      * @param annonceDto le DTO à convertir
      * @return l'entité correspondante
      */
@@ -49,14 +52,18 @@ public interface AnnonceCovoiturageMapper {
     AnnonceCovoiturage versEntite(AnnonceCovoiturageDto annonceDto);
 
     /**
-     * Convertit une liste d'AnnonceCovoiturageDto en liste d'entités AnnonceCovoiturage
+     * Convertit une liste d'AnnonceCovoiturageDto en liste d'entités AnnonceCovoiturage.
+     *
      * @param annoncesDto la liste de DTOs à convertir
      * @return la liste d'entités correspondante
      */
     List<AnnonceCovoiturage> versEntiteList(List<AnnonceCovoiturageDto> annoncesDto);
 
     /**
-     * Met à jour une entité AnnonceCovoiturage existante avec les données d'un DTO
+     * Met à jour une entité AnnonceCovoiturage existante avec les données d'un DTO.
+     * Les propriétés null du DTO ne sont pas copiées. L'ID et le responsable ne sont jamais modifiés.
+     * Les relations (véhicule, passagers) doivent être gérées dans la couche service.
+     *
      * @param annonceDto le DTO contenant les nouvelles données
      * @param annonceExistante l'entité à mettre à jour
      */

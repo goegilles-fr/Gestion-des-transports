@@ -19,6 +19,14 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 import org.springframework.security.core.Authentication;
+/**
+ * Contrôleur REST pour la gestion des utilisateurs et de leurs profils.
+ * Permet la création, modification, consultation et suppression des comptes utilisateurs.
+ * Gère également les véhicules personnels, les changements de mot de passe, et les statuts (banni, vérifié, supprimé).
+ * Seuls les administrateurs peuvent bannir/débannir des utilisateurs.
+ * Chaque utilisateur peut consulter et modifier son propre profil.
+ * Conforme aux règles métier du cahier des charges concernant la gestion des utilisateurs.
+ */
 @RestController
 @RequestMapping("/api/utilisateurs")
 @Tag(name = "Utilisateurs", description = "Gestion des comptes utilisateurs et profils")
@@ -132,8 +140,15 @@ public class UtilisateurController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erreur);
         }
     }
-    //  EXAMPLE
-    // GET  http://localhost:8080/api/utilisateurs/email/harrypot@gmail.com
+    /**
+     * Récupère un utilisateur par son adresse email.
+     * Accessible à tous les utilisateurs authentifiés.
+     * Utile pour rechercher un collaborateur avant de l'ajouter à un covoiturage.
+     *
+     * @param email l'adresse email de l'utilisateur recherché
+     * @return ResponseEntity contenant l'utilisateur trouvé sous forme de DTO (200 OK) ou message d'erreur (404 NOT FOUND)
+     * @throws RuntimeException si aucun utilisateur ne correspond à cet email
+     */
     @GetMapping("/email/{email}")
     @Operation(
             summary = "Obtenir des informations sur l'utilisateur par email.")
