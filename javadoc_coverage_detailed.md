@@ -2,9 +2,9 @@
 
 *Généré automatiquement par scan des fichiers sources*
 
-- **Couverture Globale**: 92.7%
-- **Classes**: 52/56 (92.9%)
-- **Méthodes**: 191/206 (92.7%)
+- **Couverture Globale**: 100.0%
+- **Classes**: 56/56 (100.0%)
+- **Méthodes**: 206/206 (100.0%)
 - **Packages analysés**: 12
 
 ## 📦 Couverture par Package
@@ -20,7 +20,7 @@
 | repositories | 7/7 | 0/0 | 100.0% | ✅ |
 | security | 5/5 | 8/8 | 100.0% | ✅ |
 | services | 6/6 | 0/0 | 100.0% | ✅ |
-| impl | 2/6 | 42/57 | 69.8% | ⚠️ |
+| impl | 6/6 | 57/57 | 100.0% | ✅ |
 | shared | 4/4 | 6/6 | 100.0% | ✅ |
 | tools | 2/2 | 10/10 | 100.0% | ✅ |
 
@@ -134,46 +134,17 @@
 
 ### Package: fr.diginamic.gestiondestransports.services.impl
 
-#### ⚠️ AdresseServiceImpl.java (86%)
+#### ✅ AdresseServiceImpl.java (100%)
 
-**Non documenté**:
-- 🔴 Classe `AdresseServiceImpl` (ligne 15)
-
-#### ⚠️ AnnonceCovoiturageServiceImpl.java (92%)
-
-**Non documenté**:
-- 🔴 Méthode `annulerReservation()` (ligne 343)
+#### ✅ AnnonceCovoiturageServiceImpl.java (100%)
 
 #### ✅ ReservationVehiculeServiceImpl.java (100%)
 
-#### ⚠️ UtilisateurServiceImpl.java (94%)
+#### ✅ UtilisateurServiceImpl.java (100%)
 
-**Non documenté**:
-- 🔴 Classe `UtilisateurServiceImpl` (ligne 28)
+#### ✅ VehiculeEntrepriseServiceImpl.java (100%)
 
-#### ❌ VehiculeEntrepriseServiceImpl.java (0%)
-
-**Non documenté**:
-- 🔴 Classe `VehiculeEntrepriseServiceImpl` (ligne 22)
-- 🔴 Méthode `findAll()` (ligne 38)
-- 🔴 Méthode `findByAvailability()` (ligne 42)
-- 🔴 Méthode `findById()` (ligne 106)
-- 🔴 Méthode `create()` (ligne 113)
-- 🔴 Méthode `update()` (ligne 142)
-- 🔴 Méthode `delete()` (ligne 178)
-- 🔴 Méthode `findByStatut()` (ligne 186)
-
-#### ❌ VehiculePersonnelServiceImpl.java (0%)
-
-**Non documenté**:
-- 🔴 Classe `VehiculePersonnelServiceImpl` (ligne 23)
-- 🔴 Méthode `findAll()` (ligne 39)
-- 🔴 Méthode `findById()` (ligne 44)
-- 🔴 Méthode `create()` (ligne 51)
-- 🔴 Méthode `update()` (ligne 95)
-- 🔴 Méthode `delete()` (ligne 127)
-- 🔴 Méthode `deleteByUtilisateurId()` (ligne 135)
-- 🔴 Méthode `findByUtilisateurId()` (ligne 145)
+#### ✅ VehiculePersonnelServiceImpl.java (100%)
 
 ### Package: fr.diginamic.gestiondestransports.shared
 

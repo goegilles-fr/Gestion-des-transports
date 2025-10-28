@@ -338,7 +338,19 @@ public class AnnonceCovoiturageServiceImpl implements AnnonceCovoiturageService 
         CovoituragePassagers nouvelleReservation = new CovoituragePassagers(utilisateur, annonce);
         covoituragePassagersRepository.save(nouvelleReservation);
     }
-
+    /**
+     * Annule la réservation d'un passager pour une annonce de covoiturage.
+     * Libère une place dans le covoiturage en supprimant l'entrée de la table de jointure.
+     * Vérifie que l'annonce existe et que l'utilisateur a bien une réservation active.
+     * Seul l'utilisateur ayant effectué la réservation peut l'annuler.
+     *
+     * Règle métier : un passager peut annuler sa réservation à tout moment,
+     * ce qui augmente le nombre de places disponibles dans le covoiturage.
+     *
+     * @param idAnnonce l'identifiant de l'annonce de covoiturage
+     * @param idUtilisateur l'identifiant de l'utilisateur passager souhaitant annuler
+     * @throws IllegalArgumentException si l'annonce n'existe pas ou si l'utilisateur n'a pas de réservation pour cette annonce
+     */
     @Override
     public void annulerReservation(Long idAnnonce, Long idUtilisateur) {
         // Vérifier que l'annonce existe

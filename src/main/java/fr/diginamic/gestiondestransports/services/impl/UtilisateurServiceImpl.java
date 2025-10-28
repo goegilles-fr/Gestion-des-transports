@@ -22,7 +22,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-
+/**
+ * Implémentation du service de gestion des utilisateurs.
+ * Gère la logique métier complète des comptes utilisateurs :
+ * - Inscription avec cryptage BCrypt des mots de passe
+ * - Authentification et gestion des sessions
+ * - Modification des profils (nom, prénom, adresse, véhicule personnel)
+ * - Gestion des rôles (COLLABORATEUR, ADMINISTRATEUR)
+ * - Gestion des statuts (banni, vérifié, supprimé)
+ * - Réinitialisation et changement de mot de passe avec tokens sécurisés
+ * - Envoi d'emails de notification (vérification, réinitialisation)
+ * Applique les règles métier du cahier des charges concernant les utilisateurs.
+ * Toutes les opérations sont transactionnelles pour garantir la cohérence des données.
+ */
 @Service
 @Transactional
 public class UtilisateurServiceImpl implements UtilisateurService {
