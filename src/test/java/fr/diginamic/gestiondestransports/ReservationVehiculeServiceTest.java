@@ -66,7 +66,7 @@ public class ReservationVehiculeServiceTest {
         vehicule = new VehiculeEntreprise(idReservation, "FF-666-FF", 4, "Megane", 142,
                 null, "Renault", Motorisation.THERMIQUE, Categorie.BERLINE_M, StatutVehicule.EN_SERVICE);
         vehicule.setId(5L);
-        debut = LocalDateTime.of(2025, 11, 1, 9, 0, 0);
+        debut = LocalDateTime.now().plusDays(2).withHour(9).withMinute(0).withSecond(0).withNano(0);
         fin = debut.plusHours(8);
         reservationDto = new ReservationVehiculeDTO(idReservation, user.getId(), vehicule.getId(), debut, fin);
     }
