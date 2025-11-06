@@ -262,4 +262,157 @@ public class UtilisateurIT {
 
         System.out.println("Test de validation des données réussi");
     }
+
+    @Test
+    @Order(6)
+    @DisplayName("IT - Récupération du profil utilisateur connecté")
+    void testObtenirProfil_success() {
+        // Given - Utilisateur vérifié et connecté
+        utilisateurRepository.findByEmail(emailUtilisateurCree).ifPresent(user -> {
+            user.setEstVerifie(true);
+            utilisateurRepository.save(user);
+        });
+
+        // Obtenir le JWT token
+        Map<String, String> loginRequest = Map.of(
+                "username", emailUtilisateurCree,
+                "password", "Password123!"
+        );
+
+        ResponseEntity<Map> loginResponse = restTemplate.postForEntity(
+                BASE_URL + "/login",
+                loginRequest,
+                Map.class
+        );
+
+        String jwtToken = (String) loginResponse.getBody().get("jwt");
+        assertNotNull(jwtToken, "Le JWT token ne doit pas être null");
+
+        // Créer les headers avec le token JWT
+        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        headers.set("Authorization", "Bearer " + jwtToken);
+        org.springframework.http.HttpEntity<Void> requestEntity = new org.springframework.http.HttpEntity<>(headers);
+
+        // When - Récupérer le profil
+        ResponseEntity<Map> response = restTemplate.exchange(
+                "/api/utilisateurs/profile",
+                org.springframework.http.HttpMethod.GET,
+                requestEntity,
+                Map.class
+        );
+
+        // Then - Vérifications
+        System.out.println("Statut de la réponse: " + response.getStatusCode());
+        System.out.println("Corps de la réponse: " + response.getBody());
+
+        assertEquals(HttpStatus.OK, response.getStatusCode(),
+                "Le statut devrait être 200 OK");
+
+        assertNotNull(response.getBody(), "Le corps de la réponse ne doit pas être null");
+
+        // Vérifier que les champs existent ET contiennent les bonnes valeurs
+        assertTrue(response.getBody().containsKey("id"),
+                "La réponse doit contenir l'ID");
+        assertTrue(response.getBody().containsKey("email"),
+                "La réponse doit contenir l'email");
+        assertTrue(response.getBody().containsKey("nom"),
+                "La réponse doit contenir le nom");
+        assertTrue(response.getBody().containsKey("prenom"),
+                "La réponse doit contenir le prénom");
+
+        // Vérifier les valeurs réelles (données du Test 1)
+        assertEquals(emailUtilisateurCree, response.getBody().get("email"),
+                "L'email devrait correspondre à l'utilisateur connecté");
+        assertEquals("Dupont", response.getBody().get("nom"),
+                "Le nom devrait être 'Dupont'");
+        assertEquals("Jean", response.getBody().get("prenom"),
+                "Le prénom devrait être 'Jean'");
+
+
+        System.out.println("Profil récupéré avec succès avec les bonnes données");
+    }
+
+    @Test
+    @Order(7)
+    @DisplayName("IT - Récupération du profil échoue sans authentification")
+    void testObtenirProfil_sansAuthentification_echec() {
+        // Given - Pas de token JWT
+        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        org.springframework.http.HttpEntity<Void> requestEntity = new org.springframework.http.HttpEntity<>(headers);
+
+        // When - Tentative de récupération du profil sans authentification
+        ResponseEntity<String> response = restTemplate.exchange(
+                "/api/utilisateurs/profile",
+                org.springframework.http.HttpMethod.GET,
+                requestEntity,
+                String.class
+        );
+
+        // Then - Vérifications
+        System.out.println("Statut attendu: 401 UNAUTHORIZED ou 403 FORBIDDEN");
+        System.out.println("Statut reçu: " + response.getStatusCode());
+
+        assertTrue(response.getStatusCode() == HttpStatus.UNAUTHORIZED ||
+                        response.getStatusCode() == HttpStatus.FORBIDDEN,
+                "Le statut devrait être 401 UNAUTHORIZED ou 403 FORBIDDEN");
+
+        System.out.println("Test d'accès non authentifié validé");
+    }
+
+    @Test
+    @Order(8)
+    @DisplayName("IT - Changement de mot de passe réussi")
+    void testChangerMotDePasse_success() {
+
+
+        // Obtenir le JWT token
+        Map<String, String> loginRequest = Map.of(
+                "username", emailUtilisateurCree,
+                "password", "Password123!"
+        );
+
+        ResponseEntity<Map> loginResponse = restTemplate.postForEntity(
+                BASE_URL + "/login",
+                loginRequest,
+                Map.class
+        );
+
+        String jwtToken = (String) loginResponse.getBody().get("jwt");
+
+        // Créer les headers avec le token JWT
+        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        headers.set("Authorization", "Bearer " + jwtToken);
+        headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+
+        // Nouveau mot de passe
+        Map<String, String> passwordChangeRequest = Map.of("newpassword", "NewPassword456!");
+        org.springframework.http.HttpEntity<Map<String, String>> requestEntity =
+                new org.springframework.http.HttpEntity<>(passwordChangeRequest, headers);
+
+        // When - Changer le mot de passe
+        restTemplate.exchange(
+                "/api/utilisateurs/changepassword",
+                org.springframework.http.HttpMethod.PUT,
+                requestEntity,
+                Map.class
+        );
+
+        // Then - Vérifier que la connexion avec le nouveau mot de passe fonctionne
+        Map<String, String> newLoginRequest = Map.of(
+                "username", emailUtilisateurCree,
+                "password", "NewPassword456!"
+        );
+
+        ResponseEntity<Map> newLoginResponse = restTemplate.postForEntity(
+                BASE_URL + "/login",
+                newLoginRequest,
+                Map.class
+        );
+
+        assertNotNull(newLoginResponse.getBody().get("jwt"),
+                "Changement de mot de passe échoué - impossible de se connecter avec le nouveau mot de passe");
+    }
+
+
+
 }

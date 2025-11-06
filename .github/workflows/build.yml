@@ -54,7 +54,7 @@ jobs:
           {
             "embeds": [{
               "title": "✅ Unit & Integration Tests Passed",
-              "description": "All 226 unit tests and 5 integration tests passed successfully",
+              "description": "All unit tests and integration tests passed successfully 😎👌",
               "color": 3066993,
               "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"
             }]
@@ -65,6 +65,23 @@ jobs:
             -H "Content-Type: application/json" \
             -d "$PAYLOAD"
 
+      - name: Send Discord notification on tests fail
+        if: failure()
+        run: |
+          PAYLOAD=$(cat <<EOF
+          {
+            "embeds": [{
+              "title": "❌ Tests Failed",
+              "description": "Unit or integration tests failed. Check the workflow logs for details 😢",
+              "color": 15158332,
+              "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"
+            }]
+          }
+          EOF
+          )
+          curl -X POST "${{ secrets.DISCORD_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD"
       # Docker build and push steps
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -84,6 +101,7 @@ jobs:
             penumbriel/covoit:latest
             penumbriel/covoit:${{ github.sha }}
           platforms: linux/amd64,linux/arm64
+
       - name: Send Discord notification
         if: success()
         run: |
@@ -99,6 +117,24 @@ jobs:
           curl -X POST "${{ secrets.DISCORD_WEBHOOK_URL }}" \
             -H "Content-Type: application/json" \
             -d "$PAYLOAD"
+
+      - name: Send Discord notification on Docker failure
+        if: failure()
+        run: |
+          PAYLOAD=$(cat <<EOF
+          {
+            "embeds": [{
+              "title": "❌ Docker Build Failed",
+              "description": "Failed to build or push Docker image. Check the workflow logs for details 😢",
+              "color": 15158332,
+              "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"
+            }]
+          }
+          EOF
+          )
+          curl -X POST "${{ secrets.DISCORD_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD"          
   
   
   
@@ -153,3 +189,20 @@ jobs:
             -H "Content-Type: application/json" \
             -d "$PAYLOAD"
             
+      - name: Send Discord deploy failure notification
+        if: failure()
+        run: |
+          PAYLOAD=$(cat <<EOF
+          {
+            "embeds": [{
+              "title": "❌ Deployment Failed",
+              "description": "Check the workflow logs for details 😢",
+              "color": 15158332,
+              "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"
+            }]
+          }
+          EOF
+          )
+          curl -X POST "${{ secrets.DISCORD_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD"
