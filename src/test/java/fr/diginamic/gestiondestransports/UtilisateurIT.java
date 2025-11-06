@@ -49,7 +49,7 @@ public class UtilisateurIT {
         // Nettoyer l'utilisateur créé pendant les tests
         if (emailUtilisateurCree != null) {
             repo.findByEmail(emailUtilisateurCree).ifPresent(repo::delete);
-            System.out.println("✓ Utilisateur de test supprimé: " + emailUtilisateurCree);
+            System.out.println("Utilisateur de test supprimé: " + emailUtilisateurCree);
         }
     }
 
@@ -104,7 +104,7 @@ public class UtilisateurIT {
         assertTrue(utilisateurRepository.existsById(userId),
                 "L'utilisateur devrait exister en base de données");
 
-        System.out.println("✓ Utilisateur créé avec succès - ID: " + userId);
+        System.out.println("Utilisateur créé avec succès - ID: " + userId);
     }
 
 
@@ -146,7 +146,7 @@ public class UtilisateurIT {
         assertNotNull(jwt, "Le token JWT ne doit pas être null");
         assertFalse(jwt.isEmpty(), "Le token JWT ne doit pas être vide");
 
-        System.out.println("✓ Test de connexion réussie validé");
+        System.out.println("Test de connexion réussie validé");
     }
 
     @Test
@@ -180,7 +180,7 @@ public class UtilisateurIT {
         assertEquals("BAD_CREDENTIALS", responseLogin.getBody(),
                 "Le message d'erreur devrait être 'BAD_CREDENTIALS'");
 
-        System.out.println("✓ Test d'échec de connexion validé");
+        System.out.println("Test d'échec de connexion validé");
     }
 
 
@@ -231,7 +231,7 @@ public class UtilisateurIT {
 
         // Nettoyer l'utilisateur créé
         utilisateurRepository.findByEmail(emailDuplique).ifPresent(utilisateurRepository::delete);
-        System.out.println("✓ Test de duplication d'email réussi");
+        System.out.println("Test de duplication d'email réussi");
     }
 
     @Test
@@ -260,6 +260,6 @@ public class UtilisateurIT {
 
         assertNotNull(response.getBody());
 
-        System.out.println("✓ Test de validation des données réussi");
+        System.out.println("Test de validation des données réussi");
     }
 }
