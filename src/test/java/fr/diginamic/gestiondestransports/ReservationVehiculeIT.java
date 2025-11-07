@@ -1,14 +1,11 @@
 package fr.diginamic.gestiondestransports;
 
 import fr.diginamic.gestiondestransports.dto.ReservationVehiculeDTO;
-import fr.diginamic.gestiondestransports.entites.ReservationVehicule;
-import fr.diginamic.gestiondestransports.entites.Utilisateur;
 import fr.diginamic.gestiondestransports.entites.VehiculeEntreprise;
 import fr.diginamic.gestiondestransports.enums.StatutVehicule;
 import fr.diginamic.gestiondestransports.repositories.ReservationVehiculeRepository;
 import fr.diginamic.gestiondestransports.repositories.UtilisateurRepository;
 import fr.diginamic.gestiondestransports.repositories.VehiculeEntrepriseRepository;
-import fr.diginamic.gestiondestransports.enums.RoleEnum;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -55,6 +52,7 @@ public class ReservationVehiculeIT {
     private static Long utilisateurId;
     private static Long vehiculeId;
     private static Long reservationId;
+    private static String emailUtilisateur;
 
     /**
      * Configuration initiale avant tous les tests.
@@ -68,19 +66,41 @@ public class ReservationVehiculeIT {
                             @Autowired TestRestTemplate template) {
         System.out.println("=== Configuration globale des tests d'intégration ===");
 
-        // Créer un utilisateur de test
-        Utilisateur utilisateur = new Utilisateur();
-        utilisateur.setNom("TestReservation");
-        utilisateur.setPrenom("User");
-        utilisateur.setEmail("reservation.test." + System.currentTimeMillis() + "@example.com");
-        utilisateur.setPassword(encoder.encode("TestPass123!"));
-        utilisateur.setEstVerifie(true);
-        utilisateur.setEstBanni(false);
-        utilisateur.setRole(RoleEnum.ROLE_USER);
-        utilisateur = userRepo.save(utilisateur);
-        utilisateurId = utilisateur.getId();
+        // Créer un utilisateur de test via l'endpoint d'inscription
+        emailUtilisateur = "reservation.test." + System.currentTimeMillis() + "@example.com";
 
-        System.out.println("✓ Utilisateur de test créé - ID: " + utilisateurId);
+        Map<String, Object> registrationRequest = Map.of(
+                "nom", "TestReservation",
+                "prenom", "User",
+                "email", emailUtilisateur,
+                "password", "TestPass123!",
+                "adresse", Map.of(
+                        "numero", 1,
+                        "libelle", "Rue Test",
+                        "codePostal", "34000",
+                        "ville", "Montpellier"
+                )
+        );
+
+        ResponseEntity<Map> registrationResponse = template.postForEntity(
+                "/api/auth/register",
+                registrationRequest,
+                Map.class
+        );
+
+        if (registrationResponse.getStatusCode() == HttpStatus.CREATED && registrationResponse.getBody() != null) {
+            utilisateurId = ((Number) registrationResponse.getBody().get("userId")).longValue();
+            System.out.println("✓ Utilisateur de test créé via endpoint - ID: " + utilisateurId);
+
+            // COMPROMIS : Modifier directement en base pour vérifier l'utilisateur
+            userRepo.findById(utilisateurId).ifPresent(user -> {
+                user.setEstVerifie(true);
+                userRepo.save(user);
+                System.out.println("✓ Utilisateur vérifié (via repo - compromis pour les tests)");
+            });
+        } else {
+            System.err.println("❌ Échec de la création de l'utilisateur via endpoint");
+        }
 
         // Créer un véhicule d'entreprise disponible
         VehiculeEntreprise vehicule = new VehiculeEntreprise();
@@ -97,11 +117,11 @@ public class ReservationVehiculeIT {
 
         // Obtenir un token JWT
         Map<String, String> loginRequest = Map.of(
-                "username", utilisateur.getEmail(),
+                "username", emailUtilisateur,
                 "password", "TestPass123!"
         );
 
-        System.out.println("Tentative de connexion avec email: " + utilisateur.getEmail());
+        System.out.println("Tentative de connexion avec email: " + emailUtilisateur);
 
         ResponseEntity<Map> loginResponse = template.postForEntity(
                 "/api/auth/login",
@@ -114,7 +134,7 @@ public class ReservationVehiculeIT {
 
         if (loginResponse.getStatusCode() == HttpStatus.OK && loginResponse.getBody() != null) {
             jwtToken = (String) loginResponse.getBody().get("jwt");
-            System.out.println("✓ Token JWT obtenu: " + (jwtToken != null && !jwtToken.isEmpty() ? "OUI (" + jwtToken.length() + " caractères)" : "NON - TOKEN VIDE OU NULL"));
+            System.out.println("✓ Token JWT obtenu: OUI (" + jwtToken.length() + " caractères)");
         } else {
             System.err.println("❌ Échec de l'obtention du token JWT");
         }
@@ -136,31 +156,42 @@ public class ReservationVehiculeIT {
     @AfterAll
     static void nettoyageGlobal(@Autowired ReservationVehiculeRepository resaRepo,
                                 @Autowired UtilisateurRepository userRepo,
-                                @Autowired VehiculeEntrepriseRepository vehiculeRepo) {
+                                @Autowired VehiculeEntrepriseRepository vehiculeRepo,
+                                @Autowired TestRestTemplate template) {
         System.out.println("=== Nettoyage global ===");
 
-        // Supprimer les réservations de test
-        if (utilisateurId != null) {
-            List<ReservationVehicule> reservations = resaRepo.findByUtilisateurId(utilisateurId);
-            if (!reservations.isEmpty()) {
-                resaRepo.deleteAll(reservations);
-                System.out.println("✓ Réservations de test supprimées");
+        // Supprimer les réservations via l'endpoint DELETE
+        if (reservationId != null && jwtToken != null) {
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + jwtToken);
+            HttpEntity<Void> request = new HttpEntity<>(headers);
+
+            try {
+                template.exchange(
+                        BASE_URL + "/" + reservationId,
+                        HttpMethod.DELETE,
+                        request,
+                        Void.class
+                );
+                System.out.println("✓ Réservation de test supprimée via endpoint DELETE");
+            } catch (Exception e) {
+                System.out.println("⚠ Réservation déjà supprimée ou inexistante");
             }
         }
 
-        // Supprimer le véhicule de test
+        // Supprimer le véhicule via le repository
         if (vehiculeId != null) {
             vehiculeRepo.findById(vehiculeId).ifPresent(vehicule -> {
                 vehiculeRepo.delete(vehicule);
-                System.out.println("✓ Véhicule de test supprimé");
+                System.out.println("✓ Véhicule de test supprimé via repo");
             });
         }
 
-        // Supprimer l'utilisateur de test
-        if (utilisateurId != null) {
-            userRepo.findById(utilisateurId).ifPresent(user -> {
+        // Supprimer l'utilisateur de test via le repository
+        if (emailUtilisateur != null) {
+            userRepo.findByEmail(emailUtilisateur).ifPresent(user -> {
                 userRepo.delete(user);
-                System.out.println("✓ Utilisateur de test supprimé");
+                System.out.println("✓ Utilisateur de test supprimé via repo: " + emailUtilisateur);
             });
         }
     }
@@ -174,7 +205,7 @@ public class ReservationVehiculeIT {
         HttpHeaders headers = new HttpHeaders();
         if (jwtToken != null && !jwtToken.isEmpty()) {
             headers.set("Authorization", "Bearer " + jwtToken);
-            System.out.println("Header Authorization ajouté: Bearer " + jwtToken.substring(0, Math.min(20, jwtToken.length())) + "...");
+            System.out.println("Header Authorization ajouté");
         } else {
             System.err.println("❌ ERREUR: jwtToken est null ou vide !");
         }

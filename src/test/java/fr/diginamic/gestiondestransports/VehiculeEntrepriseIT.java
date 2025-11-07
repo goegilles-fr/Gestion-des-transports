@@ -1,8 +1,6 @@
 package fr.diginamic.gestiondestransports;
 
 import fr.diginamic.gestiondestransports.dto.VehiculeDTO;
-import fr.diginamic.gestiondestransports.entites.Utilisateur;
-import fr.diginamic.gestiondestransports.entites.VehiculeEntreprise;
 import fr.diginamic.gestiondestransports.enums.Categorie;
 import fr.diginamic.gestiondestransports.enums.Motorisation;
 import fr.diginamic.gestiondestransports.enums.RoleEnum;
@@ -53,6 +51,8 @@ public class VehiculeEntrepriseIT {
     private static Long adminId;
     private static Long userId;
     private static Long vehiculeId;
+    private static String emailAdmin;
+    private static String emailUser;
 
     /**
      * Configuration initiale avant tous les tests.
@@ -65,41 +65,86 @@ public class VehiculeEntrepriseIT {
                             @Autowired TestRestTemplate template) {
         System.out.println("=== Configuration globale des tests d'intégration VehiculeEntreprise ===");
 
-        // Créer un administrateur de test
-        Utilisateur admin = new Utilisateur();
-        admin.setNom("AdminTest");
-        admin.setPrenom("Vehicule");
-        admin.setEmail("admin.vehicule.test." + System.currentTimeMillis() + "@example.com");
-        admin.setPassword(encoder.encode("AdminPass123!"));
-        admin.setEstVerifie(true);
-        admin.setEstBanni(false);
-        admin.setRole(RoleEnum.ROLE_ADMIN);
-        admin = userRepo.save(admin);
-        adminId = admin.getId();
+        // Créer un administrateur via l'endpoint puis le modifier en admin
+        emailAdmin = "admin.vehicule.test." + System.currentTimeMillis() + "@example.com";
 
-        System.out.println("✓ Administrateur de test créé - ID: " + adminId);
+        Map<String, Object> registrationRequestAdmin = Map.of(
+                "nom", "AdminTest",
+                "prenom", "Vehicule",
+                "email", emailAdmin,
+                "password", "AdminPass123!",
+                "adresse", Map.of(
+                        "numero", 1,
+                        "libelle", "Rue Admin",
+                        "codePostal", "34000",
+                        "ville", "Montpellier"
+                )
+        );
 
-        // Créer un utilisateur standard de test
-        Utilisateur user = new Utilisateur();
-        user.setNom("UserTest");
-        user.setPrenom("Standard");
-        user.setEmail("user.vehicule.test." + System.currentTimeMillis() + "@example.com");
-        user.setPassword(encoder.encode("UserPass123!"));
-        user.setEstVerifie(true);
-        user.setEstBanni(false);
-        user.setRole(RoleEnum.ROLE_USER);
-        user = userRepo.save(user);
-        userId = user.getId();
+        ResponseEntity<Map> registrationResponseAdmin = template.postForEntity(
+                "/api/auth/register",
+                registrationRequestAdmin,
+                Map.class
+        );
 
-        System.out.println("✓ Utilisateur standard de test créé - ID: " + userId);
+        if (registrationResponseAdmin.getStatusCode() == HttpStatus.CREATED && registrationResponseAdmin.getBody() != null) {
+            adminId = ((Number) registrationResponseAdmin.getBody().get("userId")).longValue();
+            System.out.println("✓ Utilisateur admin créé via endpoint - ID: " + adminId);
+
+            // COMPROMIS : Modifier directement en base pour promouvoir en ADMIN et vérifier
+            userRepo.findById(adminId).ifPresent(user -> {
+                user.setRole(RoleEnum.ROLE_ADMIN);
+                user.setEstVerifie(true);
+                userRepo.save(user);
+                System.out.println("✓ Utilisateur promu ADMIN et vérifié (via repo - compromis pour les tests)");
+            });
+        } else {
+            System.err.println("❌ Échec de la création de l'admin via endpoint");
+        }
+
+        // Créer un utilisateur standard de test via l'endpoint
+        emailUser = "user.vehicule.test." + System.currentTimeMillis() + "@example.com";
+
+        Map<String, Object> registrationRequestUser = Map.of(
+                "nom", "UserTest",
+                "prenom", "Standard",
+                "email", emailUser,
+                "password", "UserPass123!",
+                "adresse", Map.of(
+                        "numero", 2,
+                        "libelle", "Rue User",
+                        "codePostal", "34000",
+                        "ville", "Montpellier"
+                )
+        );
+
+        ResponseEntity<Map> registrationResponseUser = template.postForEntity(
+                "/api/auth/register",
+                registrationRequestUser,
+                Map.class
+        );
+
+        if (registrationResponseUser.getStatusCode() == HttpStatus.CREATED && registrationResponseUser.getBody() != null) {
+            userId = ((Number) registrationResponseUser.getBody().get("userId")).longValue();
+            System.out.println("✓ Utilisateur standard créé via endpoint - ID: " + userId);
+
+            // COMPROMIS : Vérifier l'utilisateur
+            userRepo.findById(userId).ifPresent(user -> {
+                user.setEstVerifie(true);
+                userRepo.save(user);
+                System.out.println("✓ Utilisateur vérifié (via repo - compromis pour les tests)");
+            });
+        } else {
+            System.err.println("❌ Échec de la création de l'utilisateur standard via endpoint");
+        }
 
         // Obtenir un token JWT pour l'admin
         Map<String, String> loginRequestAdmin = Map.of(
-                "username", admin.getEmail(),
+                "username", emailAdmin,
                 "password", "AdminPass123!"
         );
 
-        System.out.println("Tentative de connexion admin avec email: " + admin.getEmail());
+        System.out.println("Tentative de connexion admin avec email: " + emailAdmin);
 
         ResponseEntity<Map> loginResponseAdmin = template.postForEntity(
                 "/api/auth/login",
@@ -118,11 +163,11 @@ public class VehiculeEntrepriseIT {
 
         // Obtenir un token JWT pour l'utilisateur standard
         Map<String, String> loginRequestUser = Map.of(
-                "username", user.getEmail(),
+                "username", emailUser,
                 "password", "UserPass123!"
         );
 
-        System.out.println("Tentative de connexion user avec email: " + user.getEmail());
+        System.out.println("Tentative de connexion user avec email: " + emailUser);
 
         ResponseEntity<Map> loginResponseUser = template.postForEntity(
                 "/api/auth/login",
@@ -155,27 +200,43 @@ public class VehiculeEntrepriseIT {
      */
     @AfterAll
     static void nettoyageGlobal(@Autowired VehiculeEntrepriseRepository vehiculeRepo,
-                                @Autowired UtilisateurRepository userRepo) {
+                                @Autowired UtilisateurRepository userRepo,
+                                @Autowired TestRestTemplate template) {
         System.out.println("=== Nettoyage global ===");
 
-        // Supprimer les véhicules de test
-        if (vehiculeId != null) {
-            vehiculeRepo.findById(vehiculeId).ifPresent(vehicule -> {
-                vehiculeRepo.delete(vehicule);
-                System.out.println("✓ Véhicule de test supprimé");
+        // Supprimer le véhicule via l'endpoint DELETE (si il existe encore)
+        if (vehiculeId != null && jwtTokenAdmin != null) {
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + jwtTokenAdmin);
+            HttpEntity<Void> request = new HttpEntity<>(headers);
+
+            try {
+                template.exchange(
+                        BASE_URL + "/" + vehiculeId,
+                        HttpMethod.DELETE,
+                        request,
+                        Void.class
+                );
+                System.out.println("✓ Véhicule de test supprimé via endpoint DELETE");
+            } catch (Exception e) {
+                System.out.println("⚠ Véhicule déjà supprimé ou inexistant");
+            }
+        }
+
+        // Supprimer l'administrateur de test via le repository (pas d'autre moyen)
+        if (emailAdmin != null) {
+            userRepo.findByEmail(emailAdmin).ifPresent(admin -> {
+                userRepo.delete(admin);
+                System.out.println("✓ Administrateur de test supprimé via repo: " + emailAdmin);
             });
         }
 
-        // Supprimer l'administrateur de test
-        if (adminId != null) {
-            userRepo.findById(adminId).ifPresent(userRepo::delete);
-            System.out.println("✓ Administrateur de test supprimé");
-        }
-
-        // Supprimer l'utilisateur standard de test
-        if (userId != null) {
-            userRepo.findById(userId).ifPresent(userRepo::delete);
-            System.out.println("✓ Utilisateur standard de test supprimé");
+        // Supprimer l'utilisateur standard de test via le repository (pas d'autre moyen)
+        if (emailUser != null) {
+            userRepo.findByEmail(emailUser).ifPresent(user -> {
+                userRepo.delete(user);
+                System.out.println("✓ Utilisateur standard de test supprimé via repo: " + emailUser);
+            });
         }
     }
 
@@ -224,18 +285,18 @@ public class VehiculeEntrepriseIT {
     void testCreerVehicule_admin_success() {
         // Given - Préparation du véhicule
         VehiculeDTO vehiculeDto = new VehiculeDTO(
-                null,
-                "AB-123-CD",
-                "Renault",
-                "Kangoo",
-                5,
-                Motorisation.THERMIQUE,
-                120,
-                "https://example.com/kangoo.jpg",
-                Categorie.MINI_CITADINE,
-                StatutVehicule.EN_SERVICE,
-                null
-                );
+                null,                           // id
+                "AB-123-CD",                    // immatriculation
+                "Renault",                      // marque
+                "Kangoo",                       // modele
+                5,                              // nbPlaces
+                Motorisation.THERMIQUE,         // motorisation
+                120,                            // co2ParKm
+                "https://example.com/kangoo.jpg", // photo
+                Categorie.COMPACTE,             // categorie
+                StatutVehicule.EN_SERVICE,      // statut
+                null                            // utilisateurId (null pour véhicule entreprise)
+        );
 
         HttpEntity<VehiculeDTO> request = new HttpEntity<>(vehiculeDto, createAdminAuthHeaders());
 
@@ -276,18 +337,18 @@ public class VehiculeEntrepriseIT {
     void testCreerVehicule_user_echec() {
         // Given - Préparation du véhicule
         VehiculeDTO vehiculeDto = new VehiculeDTO(
-                null,
-                "EF-456-GH",
-                "Peugeot",
-                "Partner",
-                5,
-                Motorisation.THERMIQUE,
-                110,
-                "https://example.com/partner.jpg",
-                Categorie.BERLINE_M,
-                StatutVehicule.EN_SERVICE,
-                null
-                );
+                null,                           // id
+                "EF-456-GH",                    // immatriculation
+                "Peugeot",                      // marque
+                "Partner",                      // modele
+                5,                              // nbPlaces
+                Motorisation.THERMIQUE,         // motorisation
+                110,                            // co2ParKm
+                "https://example.com/partner.jpg", // photo
+                Categorie.COMPACTE,             // categorie
+                StatutVehicule.EN_SERVICE,      // statut
+                null                            // utilisateurId
+        );
 
         HttpEntity<VehiculeDTO> request = new HttpEntity<>(vehiculeDto, createUserAuthHeaders());
 
@@ -450,18 +511,18 @@ public class VehiculeEntrepriseIT {
     void testModifierVehicule_admin_success() {
         // Given - Nouvelles données pour le véhicule
         VehiculeDTO vehiculeModifie = new VehiculeDTO(
-                vehiculeId,
-                "AB-123-CD",
-                "Renault",
-                "Kangoo Z.E.",
-                5,
-                Motorisation.ELECTRIQUE,
-                0,
-                "https://example.com/kangoo-ze.jpg",
-                Categorie.CIDADINE_POLYVALANTE,
-                StatutVehicule.EN_SERVICE,
-                null
-                );
+                vehiculeId,                     // id
+                "AB-123-CD",                    // immatriculation
+                "Renault",                      // marque
+                "Kangoo Z.E.",                  // modele
+                5,                              // nbPlaces
+                Motorisation.ELECTRIQUE,        // motorisation
+                0,                              // co2ParKm
+                "https://example.com/kangoo-ze.jpg", // photo
+                Categorie.COMPACTE,             // categorie
+                StatutVehicule.EN_SERVICE,      // statut
+                null                            // utilisateurId
+        );
 
         HttpEntity<VehiculeDTO> request = new HttpEntity<>(vehiculeModifie, createAdminAuthHeaders());
 
@@ -497,18 +558,18 @@ public class VehiculeEntrepriseIT {
     void testModifierVehicule_user_echec() {
         // Given - Données de modification
         VehiculeDTO vehiculeModifie = new VehiculeDTO(
-                vehiculeId,
-                "AB-123-CD",
-                "Renault",
-                "Kangoo",
-                5,
-                Motorisation.HYBRIDE,
-                120,
-                "https://example.com/kangoo.jpg",
-                Categorie.COMPACTE,
-                StatutVehicule.HORS_SERVICE,
-                null
-                );
+                vehiculeId,                     // id
+                "AB-123-CD",                    // immatriculation
+                "Renault",                      // marque
+                "Kangoo",                       // modele
+                5,                              // nbPlaces
+                Motorisation.THERMIQUE,         // motorisation
+                120,                            // co2ParKm
+                "https://example.com/kangoo.jpg", // photo
+                Categorie.COMPACTE,             // categorie
+                StatutVehicule.HORS_SERVICE,    // statut
+                null                            // utilisateurId
+        );
 
         HttpEntity<VehiculeDTO> request = new HttpEntity<>(vehiculeModifie, createUserAuthHeaders());
 
