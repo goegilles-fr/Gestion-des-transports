@@ -1,4 +1,4 @@
-package fr.diginamic.gestiondestransports;
+package fr.diginamic.gestiondestransports.unit;
 
 import fr.diginamic.gestiondestransports.dto.ReservationVehiculeDTO;
 import fr.diginamic.gestiondestransports.entites.AnnonceCovoiturage;

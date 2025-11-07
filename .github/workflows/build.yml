@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DB_URL_COVOIT: ${{ secrets.DB_URL_COVOIT }}
+      DB_URL_COVOIT_TEST: ${{ secrets.DB_URL_COVOIT_TEST }}
       DB_USER_COVOIT: ${{ secrets.DB_USER_COVOIT }}
       DB_PASS_COVOIT: ${{ secrets.DB_PASS_COVOIT }}
       MJ_APIKEY_PUBLIC: ${{ secrets.MJ_APIKEY_PUBLIC }}
@@ -43,8 +44,7 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-          MJ_APIKEY_PUBLIC: ${{ secrets.MJ_APIKEY_PUBLIC }}
-          MJ_APIKEY_PRIVATE: ${{ secrets.MJ_APIKEY_PRIVATE }}
+
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=goegilles-fr_Gestion-des-transports_c8774846-d55c-408f-a6e1-fe79086912eb -Dsonar.projectName='Gestion-des-transports'
 
       - name: Send Discord notification on tests success
@@ -160,8 +160,8 @@ jobs:
             docker compose down
             DEPLOY_OUTPUT=$(docker compose up -d 2>&1)
             echo "$DEPLOY_OUTPUT"
-            sleep 10
-            if echo "$DEPLOY_OUTPUT" | grep -q "Started\|Created"; then
+            sleep 20
+            if docker compose ps --status running | grep -q "covoit-spring-app"; then
               echo "✅ Container started successfully!"
               sleep 5
               echo "Final status:"

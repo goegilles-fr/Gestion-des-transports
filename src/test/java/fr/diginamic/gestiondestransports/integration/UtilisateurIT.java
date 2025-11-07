@@ -1,4 +1,4 @@
-package fr.diginamic.gestiondestransports;
+package fr.diginamic.gestiondestransports.integration;
 
 import fr.diginamic.gestiondestransports.dto.AdresseDto;
 import fr.diginamic.gestiondestransports.dto.RegistrationDto;

@@ -1,4 +1,4 @@
-package fr.diginamic.gestiondestransports;
+package fr.diginamic.gestiondestransports.integration;
 
 import fr.diginamic.gestiondestransports.dto.ReservationVehiculeDTO;
 import fr.diginamic.gestiondestransports.entites.VehiculeEntreprise;
