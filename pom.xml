@@ -137,7 +137,7 @@
             <groupId>com.mailjet</groupId>
             <artifactId>mailjet-client</artifactId>
             <version>6.0.0</version>
-         </dependency>
+        </dependency>
 
         <!-- https://mvnrepository.com/artifact/javax.validation/validation-api -->
         <dependency>
@@ -210,6 +210,27 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <!-- Plugin Failsafe pour les tests d'intégration -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.5.4</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <!-- Les tests d'intégration doivent se terminer par IT.java -->
+                    <includes>
+                        <include>**/*IT.java</include>
+                        <include>**/*IntegrationTest.java</include>
+                    </includes>
+                </configuration>
             </plugin>
         </plugins>
         <pluginManagement>

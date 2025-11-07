@@ -1,4 +1,4 @@
-package fr.diginamic.gestiondestransports;
+package fr.diginamic.gestiondestransports.unit;
 
 import fr.diginamic.gestiondestransports.dto.AdresseDto;
 import fr.diginamic.gestiondestransports.dto.ModifierProfilDto;
