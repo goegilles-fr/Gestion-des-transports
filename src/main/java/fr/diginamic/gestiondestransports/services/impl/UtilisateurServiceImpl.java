@@ -90,26 +90,28 @@ public class UtilisateurServiceImpl implements UtilisateurService {
         nouvelUtilisateur.setPassword(passwordEncoder.encode(motDePasse));
         nouvelUtilisateur.setRole(RoleEnum.ROLE_USER); // Rôle par défaut
         nouvelUtilisateur.setEstBanni(false);
-        nouvelUtilisateur.setEstVerifie(true);//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! WARNING !!!!!!!!!!!!!!!user is created already verified for testing
+        nouvelUtilisateur.setEstVerifie(false);
 
         // Créer ou assigner l'adresse si fournie
         if (adresse != null) {
             Adresse adresseSauvegardee = adresseService.creerAdresse(adresse);
             nouvelUtilisateur.setAdresse(adresseSauvegardee);
         }
-        String corps =
-                 "Voici les informations de votre compte :<br>"
-                + "- Email : <b>" + email + "</b><br>"
-                + "- Statut : Votre profil a été créé, mais n’est pas encore vérifié.<br><br>"
+        String corps = "Voici les informations de votre compte :<br><br>"
+                + "<b>Identifiant de connexion :</b> " + email + "<br><br>"
+                + "<b>Statut du profil :</b> Votre profil n'est pas vérifié par défaut. "
+                + "Vous devez contacter l'administrateur pour demander la vérification de votre compte. "
+                + "Après vérification, vous pourrez vous connecter et utiliser le site.<br><br>"
                 + "Merci de rejoindre notre communauté de covoiturage !<br>"
                 + "À bientôt,<br>"
-                + "L’équipe Covoit";
+                + "L'équipe Covoit";
 
+        // Envoi de l'email de bienvenue
         emailSender.send(
                 email,
                 corps,
-                "Hello " + prenom + " " + nom + ", welcome to covoit",
-                "Bienvenue sur Covoit. "
+                "Bienvenue " + prenom + " " + nom + " !",
+                "Bienvenue sur Covoit - Vérification requise"
         );
 
 
@@ -380,7 +382,8 @@ public class UtilisateurServiceImpl implements UtilisateurService {
         tokensExpiration.put(token, System.currentTimeMillis() + 3600000);
 
         // Construire le lien de réinitialisation
-        String lienReinitialisation = urlBase + "/reset-password?token=" + token;
+
+        String lienReinitialisation = urlBase + "/motdepasse/recuperation?token=" + token;
         // Envoyer l'email avec le lien
         emailSender.send(
                 email,

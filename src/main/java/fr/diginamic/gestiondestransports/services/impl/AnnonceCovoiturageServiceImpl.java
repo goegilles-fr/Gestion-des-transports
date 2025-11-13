@@ -383,12 +383,18 @@ public class AnnonceCovoiturageServiceImpl implements AnnonceCovoiturageService 
 
         return annonces.stream()
                 .map(annonce -> {
-                    AnnonceCovoiturageDto dto = annonceMapper.versDto(annonce);
-                    Integer placesTotales = obtenirNombrePlacesTotales((long) annonce.getId());
-                    Integer placesOccupees = obtenirNombrePlacesOccupees((long) annonce.getId());
-
-                    return AnnonceCovoiturageAvecPlacesDto.of(dto, placesTotales, placesOccupees);
+                    try {
+                        AnnonceCovoiturageDto dto = annonceMapper.versDto(annonce);
+                        Integer placesTotales = obtenirNombrePlacesTotales((long) annonce.getId());
+                        Integer placesOccupees = obtenirNombrePlacesOccupees((long) annonce.getId());
+                        return AnnonceCovoiturageAvecPlacesDto.of(dto, placesTotales, placesOccupees);
+                    } catch (IllegalStateException e) {
+                        // Journaliser l'anomalie mais continuer
+                        System.err.println("Annonce corrompue ignorée - ID: " + annonce.getId() + " - " + e.getMessage());
+                        return null;
+                    }
                 })
+                .filter(dto -> dto != null) // Éliminer les annonces corrompues
                 .toList();
     }
 
