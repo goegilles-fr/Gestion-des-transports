@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.5</version>
+        <version>3.5.7</version>
     </parent>
     <groupId>fr.diginamic</groupId>
     <artifactId>Gestion-des-transports</artifactId>
@@ -108,16 +108,17 @@
             <scope>runtime</scope>
         </dependency>
         <!-- Connecteur jdbc MySQL -->
+        <!-- https://mvnrepository.com/artifact/com.mysql/mysql-connector-j -->
         <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.19</version>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <version>8.3.0</version>
         </dependency>
 
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>2.6.0</version>
+            <version>2.8.13</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.mapstruct/mapstruct -->
@@ -170,48 +171,77 @@
             <artifactId>junit-jupiter-params</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.owasp</groupId>
+            <artifactId>dependency-check-maven</artifactId>
+            <version>12.1.9</version>
+        </dependency>
+        <!-- Force commons-lang3 to secure version -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.18.0</version>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
             <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.12</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>report</id>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
-                        <configuration>
-                            <excludes>
-                                <exclude>**/mapper/**</exclude>
-                                <exclude>**/controllers/**</exclude>
-                                <exclude>**/config/**</exclude>
-                                <exclude>**/dto/**</exclude>
-                                <exclude>**/security/**</exclude>
-                                <exclude>**/shared/**</exclude>
-                                <exclude>**/EmailSender.class</exclude>
-                                <exclude>**/OsmApi.class</exclude>
-                                <exclude>**/GestionDesTransportsApplication.class</exclude>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>12.1.9</version>
+                <configuration>
+                    <retireJsAnalyzerEnabled>false</retireJsAnalyzerEnabled>
+                </configuration>
+                <!-- Removed to make sure OWASP analysis does not run on deployment -->
+                <!-- use this instead              mvn dependency-check:check              -->
+            <!--<executions>
+               <execution>
+                   <goals>
+                       <goal>check</goal>
+                   </goals>
+               </execution>
+           </executions> -->
+       </plugin>
+       <plugin>
+           <groupId>org.springframework.boot</groupId>
+           <artifactId>spring-boot-maven-plugin</artifactId>
+       </plugin>
+       <plugin>
+           <groupId>org.jacoco</groupId>
+           <artifactId>jacoco-maven-plugin</artifactId>
+           <version>0.8.12</version>
+           <executions>
+               <execution>
+                   <goals>
+                       <goal>prepare-agent</goal>
+                   </goals>
+               </execution>
+               <execution>
+                   <id>report</id>
+                   <phase>test</phase>
+                   <goals>
+                       <goal>report</goal>
+                   </goals>
+                   <configuration>
+                       <excludes>
+                           <exclude>**/mapper/**</exclude>
+                           <exclude>**/controllers/**</exclude>
+                           <exclude>**/config/**</exclude>
+                           <exclude>**/dto/**</exclude>
+                           <exclude>**/security/**</exclude>
+                           <exclude>**/shared/**</exclude>
+                           <exclude>**/EmailSender.class</exclude>
+                           <exclude>**/OsmApi.class</exclude>
+                           <exclude>**/GestionDesTransportsApplication.class</exclude>
 
-                            </excludes>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <!-- Plugin Failsafe pour les tests d'intégration -->
+                       </excludes>
+                   </configuration>
+               </execution>
+           </executions>
+       </plugin>
+       <!-- Plugin Failsafe pour les tests d'intégration -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
