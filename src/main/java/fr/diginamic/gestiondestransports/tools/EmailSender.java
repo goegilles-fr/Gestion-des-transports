@@ -8,6 +8,7 @@ import com.mailjet.client.MailjetResponse;
 import com.mailjet.client.errors.MailjetException;
 import com.mailjet.client.resource.Emailv31;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -82,7 +83,7 @@ public class EmailSender {
 
 
 
-        } catch (MailjetException e) {
+        } catch (MailjetException | JSONException e) {
 
         }
     }
